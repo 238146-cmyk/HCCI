@@ -388,14 +388,41 @@
 
   <footer>© غرفة تجارة وصناعة محافظة الخليل — جميع الحقوق محفوظة</footer>
 
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCb3QYJ1bbvVPrW6YNS-tZSByznDkjKumk",
+    authDomain: "hcci-cb444.firebaseapp.com",
+    projectId: "hcci-cb444",
+    storageBucket: "hcci-cb444.firebasestorage.app",
+    messagingSenderId: "692029433744",
+    appId: "1:692029433744:web:2544c75f6e3588e8bf7515",
+    measurementId: "G-EK39JBYDEC"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
 <script>
 
-/* ================================================================
-   البيانات المشتركة + نظام المزامنة بين الصفحات عبر window.name
-   ================================================================ */
-const STORAGE_KEY = 'hebron_exhibits';
-function getExhibits(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }catch(e){ return []; } }
-function saveExhibits(list){ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }
+/* ==========================================================
+   دوال إدارة بيانات المعارض — متصلة بقاعدة بيانات Firebase
+   (بديل عن التخزين المحلي القديم localStorage، عشان البيانات
+   تكون مشتركة بين كل الزوار مهما كان جهازهم أو متصفحهم)
+   ========================================================== */
+
+let cachedExhibits = [];
+
+function getExhibits(){ return cachedExhibits; }
+
+// حفظ/تحديث معرض واحد في قاعدة البيانات المشتركة
+function saveExhibitDoc(ex){
+  return db.collection('exhibits').doc(String(ex.id)).set(ex);
+}
+// حذف معرض من قاعدة البيانات المشتركة
+function deleteExhibitDoc(id){
+  return db.collection('exhibits').doc(String(id)).delete();
+}
 
 const STATUS_LABEL = { upcoming: 'قادم', old: 'قديم' };
 const STATUS_BADGE_CLASS = { upcoming:'badge-upcoming', old:'badge-old' };
@@ -415,84 +442,27 @@ function escapeHtml(str){
   return d.innerHTML;
 }
 
-// أرشفة تلقائية: فقط "حالي" الذي انتهى تاريخه ينتقل لـ"قديم" (لا يوجد انتقال مفاجئ لـ"قادم")
+// أرشفة تلقائية: فقط "قادم" الذي انتهى تاريخه ينتقل لـ"قديم"
 function runAutoStatusTransition(){
-  const all = getExhibits();
   const today = new Date().toISOString().slice(0,10);
-  let changed = false;
-  all.forEach(ex => {
-    if(ex.status === 'upcoming' && ex.endDate && ex.endDate < today){ ex.status = 'old'; changed = true; }
-  });
-  if(changed) saveExhibits(all);
-  return all;
-}
-
-const HEBRON_SYNC_MARKER = 'HEBRON_SYNC_V1::';
-
-(function applyIncomingWindowSync(){
-  try{
-    if(window.name && window.name.indexOf(HEBRON_SYNC_MARKER) === 0){
-      const payload = JSON.parse(window.name.slice(HEBRON_SYNC_MARKER.length));
-      if(payload && Array.isArray(payload.exhibits)){
-        localStorage.setItem('hebron_exhibits', JSON.stringify(payload.exhibits));
-      }
-      if(payload && Array.isArray(payload.subscriptions)){
-        localStorage.setItem('hebron_subscriptions', JSON.stringify(payload.subscriptions));
-      }
+  cachedExhibits.forEach(ex => {
+    if(ex.status === 'upcoming' && ex.endDate && ex.endDate < today){
+      ex.status = 'old';
+      saveExhibitDoc(ex).catch(function(e){ console.error('تعذّر تحديث حالة المعرض تلقائيًا:', e); });
     }
-  }catch(e){ /* تجاهل أي خطأ بالترميز */ }
-})();
-
-function hebronBuildSyncPayload(){
-  const payload = {};
-  try{ payload.exhibits = JSON.parse(localStorage.getItem('hebron_exhibits')) || []; }catch(e){ payload.exhibits = []; }
-  try{ payload.subscriptions = JSON.parse(localStorage.getItem('hebron_subscriptions')) || []; }catch(e){ payload.subscriptions = []; }
-  return payload;
+  });
+  return cachedExhibits;
 }
 
-function syncAndNavigate(url){
-  try{ window.name = HEBRON_SYNC_MARKER + JSON.stringify(hebronBuildSyncPayload()); }catch(e){ /* تجاهل */ }
+function goToPage(url){
   window.location.href = url;
 }
-
-// ============ دفع صامت للبيانات إلى الصفحات العامة المنفصلة (بدون تنقّل أو ضغط أي رابط) ============
-// يحل مشكلة عزل التخزين بين ملفات file:// بشكل نهائي: بمجرد نشر/تعديل/حذف معرض،
-// نحمّل الصفحة العامة بشكل مخفي بالخلفية وندفعلها نسخة محدّثة من البيانات مباشرة.
-function silentSyncTo(url){
-  try{
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.setAttribute('aria-hidden', 'true');
-    iframe.src = url;
-    document.body.appendChild(iframe);
-    iframe.onload = function(){
-      try{
-        iframe.contentWindow.postMessage({
-          type: 'HEBRON_SYNC_PUSH',
-          payload: hebronBuildSyncPayload()
-        }, '*');
-      }catch(e){ /* تجاهل */ }
-      setTimeout(() => { if(iframe.parentNode) iframe.parentNode.removeChild(iframe); }, 1500);
-    };
-  }catch(e){ /* تجاهل */ }
-}
-
-function silentSyncToAllPublicPages(){
-  silentSyncTo('المعارض_القادمة.html');
-  silentSyncTo('المعارض_السابقة.html');
-}
-
-document.addEventListener('click', function(e){
-  const link = e.target.closest('a[href*=".html"]');
-  if(link && !link.target){
-    try{ window.name = HEBRON_SYNC_MARKER + JSON.stringify(hebronBuildSyncPayload()); }catch(err){ /* تجاهل */ }
-  }
-}, true);
 
 window.__DEFAULT_TAB__ = 'publish';
 
 </script>
 <script>
+
 
 /* ================================================================
    تبويب: نشر معرض جديد
@@ -525,11 +495,13 @@ removeFile.addEventListener('click', () => {
 });
 
 function handleFile(file){
-  const maxSize = 3 * 1024 * 1024;
+  // ملاحظة: الحد أصبح 500 كيلوبايت بدل 3 ميجابايت لأن قاعدة بيانات Firebase
+  // لا تقبل مستندًا أكبر من 1 ميجابايت (والصورة تكبر ~33% بعد الترميز)
+  const maxSize = 500 * 1024;
   const isImage = file.type.startsWith('image/');
   const isPdf = file.type === 'application/pdf';
   if(!isImage && !isPdf){ alert('الرجاء اختيار صورة أو ملف PDF فقط.'); fileInput.value = ''; return; }
-  if(file.size > maxSize){ alert('حجم الملف كبير جدًا. الحد الأقصى 3 ميجابايت.'); fileInput.value = ''; return; }
+  if(file.size > maxSize){ alert('حجم الملف كبير جدًا. الحد الأقصى 500 كيلوبايت (0.5 ميجابايت).'); fileInput.value = ''; return; }
   const reader = new FileReader();
   reader.onload = () => {
     fileData = { name: file.name, type: isImage ? 'image' : 'pdf', dataUrl: reader.result };
@@ -613,32 +585,28 @@ publishForm.addEventListener('submit', (e) => {
     createdAt: new Date().toISOString()
   };
 
-  const list = getExhibits();
-  list.push(exhibit);
+  saveExhibitDoc(exhibit).then(() => {
+    publishSuccessNotice.textContent = 'تم نشر المعرض بنجاح ✅ شوفيه بالأسفل بتبويب "تعديل المعارض".';
+    publishSuccessNotice.classList.add('show');
+    publishForm.reset();
+    fileData = null;
+    filePreview.classList.remove('show');
+    customFields = [];
+    renderCustomFields();
 
-  try{
-    saveExhibits(list);
-  }catch(err){
-    publishErrorNotice.textContent = 'تعذّر حفظ المعرض: مساحة التخزين ممتلئة أو الملف كبير جدًا.';
+    // الانتقال لتبويب "تعديل المعارض" فورًا
+    setTimeout(() => { switchTab('edit'); }, 700);
+  }).catch((err) => {
+    console.error('تعذّر نشر المعرض:', err);
+    publishErrorNotice.textContent = 'تعذّر حفظ المعرض. تأكدي من اتصال الإنترنت وحاولي مجددًا.';
     publishErrorNotice.classList.add('show');
-    return;
-  }
-
-  publishSuccessNotice.textContent = 'تم نشر المعرض بنجاح ✅ شوفيه بالأسفل بتبويب "تعديل المعارض".';
-  publishSuccessNotice.classList.add('show');
-  publishForm.reset();
-  fileData = null;
-  filePreview.classList.remove('show');
-  customFields = [];
-  renderCustomFields();
-
-  // الانتقال لتبويب "تعديل المعارض" فورًا (بنفس الصفحة، بدون أي تنقل حقيقي بين ملفات)
-  silentSyncToAllPublicPages();
-  setTimeout(() => { switchTab('edit'); }, 700);
+  });
 });
+
 
 </script>
 <script>
+
 
 /* ================================================================
    تبويب: تعديل المعارض
@@ -646,7 +614,7 @@ publishForm.addEventListener('submit', (e) => {
 let currentFilter = 'all';
 
 function render(){
-  const list = getExhibits().sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+  const list = getExhibits().slice().sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
   const container = document.getElementById('exhibitsContainer');
   const filtered = currentFilter === 'all' ? list : list.filter(ex => ex.status === currentFilter);
 
@@ -703,7 +671,6 @@ function render(){
 }
 
 // دالة مساعدة: تجد العنصر بمطابقة المعرّف، وإذا فشلت تلجأ للموقع (index) كخطة احتياطية
-// هذا يحمي من أي معارض قديمة قد يكون معرّفها (id) غير متطابق النوع بسبب نسخ كود سابقة
 function findExhibitRobust(list, id, indexHint){
   let ex = list.find(x => String(x.id) === String(id));
   if(!ex && typeof indexHint === 'number' && list[indexHint]){
@@ -713,34 +680,36 @@ function findExhibitRobust(list, id, indexHint){
 }
 
 function moveExhibit(id, newStatus, indexHint){
-  const list = getExhibits().sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+  const list = getExhibits().slice().sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
   const ex = findExhibitRobust(list, id, indexHint);
   if(!ex) return;
-  ex.status = newStatus;
-  saveExhibits(list);
-  silentSyncToAllPublicPages();
+  const updated = Object.assign({}, ex, { status: newStatus });
 
-  // "قادم" و"قديم" صفحات عامة منفصلة فعليًا، فلازم ننقل البيانات معنا عند الذهاب إليها (طبقة حماية إضافية)
-  const destination = DESTINATION_PAGE[newStatus];
-  if(destination){
-    syncAndNavigate(destination);
-    return;
-  }
-  render();
+  saveExhibitDoc(updated).then(() => {
+    const destination = DESTINATION_PAGE[newStatus];
+    if(destination){
+      goToPage(destination);
+      return;
+    }
+    render();
+  }).catch((err) => {
+    console.error('تعذّر نقل المعرض:', err);
+    alert('تعذّر تحديث حالة المعرض. تأكدي من اتصال الإنترنت وحاولي مجددًا.');
+  });
 }
 
 function deleteExhibit(id, indexHint){
   if(!confirm('هل أنت متأكد من حذف هذا المعرض؟ لا يمكن التراجع عن هذا الإجراء.')) return;
-  const list = getExhibits().sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+  const list = getExhibits().slice().sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
   const target = findExhibitRobust(list, id, indexHint);
   if(!target){
     alert('تعذّر تحديد المعرض المطلوب حذفه. حدّثي الصفحة وحاولي مجددًا.');
     return;
   }
-  const newList = list.filter(x => x !== target);
-  saveExhibits(newList);
-  silentSyncToAllPublicPages();
-  render();
+  deleteExhibitDoc(target.id).catch((err) => {
+    console.error('تعذّر حذف المعرض:', err);
+    alert('تعذّر حذف المعرض. تأكدي من اتصال الإنترنت وحاولي مجددًا.');
+  });
 }
 
 const editPanel = document.getElementById('editPanel');
@@ -759,7 +728,7 @@ editFileInput.addEventListener('change', () => {
   const isImage = file.type.startsWith('image/');
   const isPdf = file.type === 'application/pdf';
   if(!isImage && !isPdf){ alert('الرجاء اختيار صورة أو ملف PDF فقط.'); return; }
-  if(file.size > 3*1024*1024){ alert('حجم الملف كبير جدًا (الحد الأقصى 3 ميجابايت).'); return; }
+  if(file.size > 500*1024){ alert('حجم الملف كبير جدًا (الحد الأقصى 500 كيلوبايت).'); return; }
   const reader = new FileReader();
   reader.onload = () => {
     editImageData = { name: file.name, type: isImage ? 'image' : 'pdf', dataUrl: reader.result };
@@ -773,7 +742,7 @@ editFileInput.addEventListener('change', () => {
 });
 
 function startEdit(id, indexHint){
-  const list = getExhibits().sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+  const list = getExhibits().slice().sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
   const ex = findExhibitRobust(list, id, indexHint);
   if(!ex) return;
 
@@ -815,42 +784,35 @@ editForm.addEventListener('submit', (e) => {
   const id = document.getElementById('editId').value;
   const indexHintRaw = document.getElementById('editIndexHint').value;
   const indexHint = indexHintRaw === '' ? undefined : Number(indexHintRaw);
-  const list = getExhibits().sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+  const list = getExhibits().slice().sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
   const ex = findExhibitRobust(list, id, indexHint);
   if(!ex){
     alert('تعذّر تحديد المعرض المطلوب تعديله. حدّثي الصفحة وحاولي مجددًا.');
     return;
   }
 
-  ex.title = document.getElementById('editTitle').value.trim();
-  ex.description = document.getElementById('editDescription').value.trim();
-  ex.location = document.getElementById('editLocation').value.trim();
-  ex.startDate = document.getElementById('editStartDate').value;
-  ex.endDate = document.getElementById('editEndDate').value;
+  const updated = Object.assign({}, ex);
+  updated.title = document.getElementById('editTitle').value.trim();
+  updated.description = document.getElementById('editDescription').value.trim();
+  updated.location = document.getElementById('editLocation').value.trim();
+  updated.startDate = document.getElementById('editStartDate').value;
+  updated.endDate = document.getElementById('editEndDate').value;
   const newStatus = document.querySelector('input[name="editStatus"]:checked').value;
-  if(editImageData) ex.image = editImageData;
+  updated.status = newStatus;
+  if(editImageData) updated.image = editImageData;
 
-  try{
-    saveExhibits(list);
-  }catch(err){
-    alert('تعذّر حفظ التعديلات: مساحة التخزين ممتلئة أو الملف كبير جدًا.');
-    return;
-  }
+  saveExhibitDoc(updated).then(() => {
+    editPanel.classList.remove('show');
+    editForm.reset();
+    editImgPreview.classList.remove('show');
 
-  editPanel.classList.remove('show');
-  editForm.reset();
-  editImgPreview.classList.remove('show');
-  silentSyncToAllPublicPages();
-
-  if(newStatus !== ex.status){
-    ex.status = newStatus;
-    saveExhibits(list);
-    silentSyncToAllPublicPages();
-    const destination = DESTINATION_PAGE[newStatus];
-    if(destination){ syncAndNavigate(destination); return; }
-  }
-
-  render();
+    const destination = (newStatus !== ex.status) ? DESTINATION_PAGE[newStatus] : null;
+    if(destination){ goToPage(destination); return; }
+    render();
+  }).catch((err) => {
+    console.error('تعذّر حفظ التعديلات:', err);
+    alert('تعذّر حفظ التعديلات. تأكدي من اتصال الإنترنت وحاولي مجددًا.');
+  });
 });
 
 document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -862,8 +824,10 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
   });
 });
 
+
 </script>
 <script>
+
   // ============ التحكم بالتبويبات ============
   function switchTab(name){
     document.getElementById('panelPublish').classList.toggle('active', name === 'publish');
@@ -873,17 +837,29 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
     if(name === 'edit'){ render(); }
   }
 
-  // تحديد التبويب الافتراضي: لو في ?edit=ID بالرابط نفتح تبويب التعديل مباشرة على هذا المعرض
-  const urlParams = new URLSearchParams(window.location.search);
-  const editIdParam = urlParams.get('edit');
-  const startTab = window.__DEFAULT_TAB__;
+  // الاتصال اللحظي بقاعدة بيانات المعارض. أول دفعة بيانات تصل تحدّد التبويب
+  // الافتراضي (أو تفتح معرض معين لو في ?edit=ID بالرابط)، وأي تحديث بعدها
+  // (من أي جهاز) بيحدّث القائمة تلقائيًا لو تبويب "تعديل المعارض" مفعّل.
+  let __hebronInitialLoadDone = false;
+  db.collection('exhibits').onSnapshot(function(snapshot){
+    cachedExhibits = snapshot.docs.map(d => d.data());
+    runAutoStatusTransition();
 
-  if(editIdParam){
-    switchTab('edit');
-    startEdit(Number(editIdParam));
-  } else {
-    switchTab(startTab);
-  }
+    if(!__hebronInitialLoadDone){
+      __hebronInitialLoadDone = true;
+      const urlParams = new URLSearchParams(window.location.search);
+      const editIdParam = urlParams.get('edit');
+      if(editIdParam){
+        switchTab('edit');
+        startEdit(Number(editIdParam));
+      } else {
+        switchTab(window.__DEFAULT_TAB__);
+      }
+    } else if(document.getElementById('panelEdit').classList.contains('active')){
+      render();
+    }
+  }, function(err){ console.error('Firestore exhibits error:', err); });
+
 </script>
 
 </body>

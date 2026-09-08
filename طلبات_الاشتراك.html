@@ -127,6 +127,21 @@
   footer{ padding:24px 6vw 22px; text-align:center; border-top:1px solid #e9e0cc; font-size:11.5px; color:#b5aa8f; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCb3QYJ1bbvVPrW6YNS-tZSByznDkjKumk",
+    authDomain: "hcci-cb444.firebaseapp.com",
+    projectId: "hcci-cb444",
+    storageBucket: "hcci-cb444.firebasestorage.app",
+    messagingSenderId: "692029433744",
+    appId: "1:692029433744:web:2544c75f6e3588e8bf7515",
+    measurementId: "G-EK39JBYDEC"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
 </head>
 <body>
 
@@ -154,7 +169,7 @@
     <div class="content-wrap">
 
       <div class="notice notice-info">
-        هذه الطلبات مخزّنة في متصفح هذا الجهاز (localStorage). أي طلب اشتراك يُقدَّم من صفحة "المعارض القادمة" على نفس هذا المتصفح يظهر هنا فورًا.
+        هذه الطلبات مخزّنة في قاعدة بيانات مشتركة على الإنترنت. أي طلب اشتراك يُقدَّم من صفحة "المعارض القادمة" — من أي جهاز أو متصفح — يظهر هنا فورًا.
       </div>
 
       <div class="print-header">
@@ -187,52 +202,9 @@
   </footer>
 
 <script>
-  const SUBSCRIPTIONS_KEY = 'hebron_subscriptions';
-  function getSubscriptions(){ try{ return JSON.parse(localStorage.getItem(SUBSCRIPTIONS_KEY)) || []; }catch(e){ return []; } }
-  function saveSubscriptions(list){ localStorage.setItem(SUBSCRIPTIONS_KEY, JSON.stringify(list)); }
 
-/* ================================================================
-   نظام مزامنة البيانات بين الصفحات عبر window.name
-   يحل مشكلة عزل المتصفح للتخزين (localStorage) بين ملفات file:// المنفصلة،
-   عن طريق تمرير نسخة كاملة من البيانات مع المتصفح نفسه أثناء التنقل
-   بين صفحات نظام المعارض، بغض النظر عن طريقة فتح الملفات.
-   ================================================================ */
-const HEBRON_SYNC_MARKER = 'HEBRON_SYNC_V1::';
 
-(function applyIncomingWindowSync(){
-  try{
-    if(window.name && window.name.indexOf(HEBRON_SYNC_MARKER) === 0){
-      const payload = JSON.parse(window.name.slice(HEBRON_SYNC_MARKER.length));
-      if(payload && Array.isArray(payload.exhibits)){
-        localStorage.setItem('hebron_exhibits', JSON.stringify(payload.exhibits));
-      }
-      if(payload && Array.isArray(payload.subscriptions)){
-        localStorage.setItem('hebron_subscriptions', JSON.stringify(payload.subscriptions));
-      }
-    }
-  }catch(e){ /* تجاهل أي خطأ بالترميز */ }
-})();
-
-function hebronBuildSyncPayload(){
-  const payload = {};
-  try{ payload.exhibits = JSON.parse(localStorage.getItem('hebron_exhibits')) || []; }catch(e){ payload.exhibits = []; }
-  try{ payload.subscriptions = JSON.parse(localStorage.getItem('hebron_subscriptions')) || []; }catch(e){ payload.subscriptions = []; }
-  return payload;
-}
-
-function syncAndNavigate(url){
-  try{ window.name = HEBRON_SYNC_MARKER + JSON.stringify(hebronBuildSyncPayload()); }catch(e){ /* تجاهل */ }
-  window.location.href = url;
-}
-
-// اعتراض أي نقرة على رابط داخلي (يؤدي لملف .html آخر بنفس الموقع) وتحديث window.name قبل الانتقال إليه
-document.addEventListener('click', function(e){
-  const link = e.target.closest('a[href*=".html"]');
-  if(link && !link.target){
-    try{ window.name = HEBRON_SYNC_MARKER + JSON.stringify(hebronBuildSyncPayload()); }catch(err){ /* تجاهل */ }
-  }
-}, true);
-
+  let cachedSubscriptions = [];
 
   function fmtDate(d){
     if(!d) return '—';
@@ -251,7 +223,7 @@ document.addEventListener('click', function(e){
   }
 
   function render(){
-    const list = getSubscriptions().sort((a,b) => b.submittedAt.localeCompare(a.submittedAt));
+    const list = cachedSubscriptions.slice().sort((a,b) => (b.submittedAt||'').localeCompare(a.submittedAt||''));
     document.getElementById('countPill').textContent = list.length + ' طلب';
     const container = document.getElementById('requestsContainer');
 
@@ -309,13 +281,14 @@ document.addEventListener('click', function(e){
 
   function deleteSubscription(id){
     if(!confirm('هل أنت متأكد من حذف طلب الاشتراك هذا؟')) return;
-    const list = getSubscriptions().filter(x => x.id !== id);
-    saveSubscriptions(list);
-    render();
+    db.collection('subscriptions').doc(String(id)).delete().catch((err) => {
+      console.error('تعذّر حذف الطلب:', err);
+      alert('تعذّر حذف الطلب. تأكدي من اتصال الإنترنت وحاولي مجددًا.');
+    });
   }
 
   document.getElementById('excelBtn').addEventListener('click', () => {
-    const list = getSubscriptions().sort((a,b) => b.submittedAt.localeCompare(a.submittedAt));
+    const list = cachedSubscriptions.slice().sort((a,b) => (b.submittedAt||'').localeCompare(a.submittedAt||''));
 
     if(list.length === 0){
       alert('لا توجد طلبات اشتراك لتصديرها.');
@@ -357,7 +330,11 @@ document.addEventListener('click', function(e){
     window.print();
   });
 
-  render();
+  db.collection('subscriptions').onSnapshot(function(snapshot){
+    cachedSubscriptions = snapshot.docs.map(d => d.data());
+    render();
+  }, function(err){ console.error('Firestore subscriptions error:', err); });
+
 </script>
 
 </body>

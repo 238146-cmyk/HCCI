@@ -107,66 +107,38 @@
 
 </head>
 <body>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCb3QYJ1bbvVPrW6YNS-tZSByznDkjKumk",
+    authDomain: "hcci-cb444.firebaseapp.com",
+    projectId: "hcci-cb444",
+    storageBucket: "hcci-cb444.firebasestorage.app",
+    messagingSenderId: "692029433744",
+    appId: "1:692029433744:web:2544c75f6e3588e8bf7515",
+    measurementId: "G-EK39JBYDEC"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
+<script>
+
 /* ==========================================================
-   دوال إدارة بيانات المعارض (مضمّنة داخل هذه الصفحة مباشرة)
+   دوال إدارة بيانات المعارض — متصلة بقاعدة بيانات Firebase
+   (بديل عن التخزين المحلي القديم localStorage، عشان البيانات
+   تكون مشتركة بين كل الزوار مهما كان جهازهم أو متصفحهم)
    ========================================================== */
 
-const STORAGE_KEY = 'hebron_exhibits';
+let cachedExhibits = [];
 
-// قراءة كل المعارض المخزّنة
-function getExhibits(){
-  try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-  catch(e){ return []; }
+// قراءة كل المعارض المخزّنة (من النسخة المحدّثة لحظيًا من قاعدة البيانات)
+function getExhibits(){ return cachedExhibits; }
+
+// حفظ/تحديث معرض واحد في قاعدة البيانات المشتركة
+function saveExhibitDoc(ex){
+  return db.collection('exhibits').doc(String(ex.id)).set(ex);
 }
-
-// حفظ قائمة المعارض بالكامل
-function saveExhibits(list){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-}
-
-/* ================================================================
-   نظام مزامنة البيانات بين الصفحات عبر window.name
-   يحل مشكلة عزل المتصفح للتخزين (localStorage) بين ملفات file:// المنفصلة،
-   عن طريق تمرير نسخة كاملة من البيانات مع المتصفح نفسه أثناء التنقل
-   بين صفحات نظام المعارض، بغض النظر عن طريقة فتح الملفات.
-   ================================================================ */
-const HEBRON_SYNC_MARKER = 'HEBRON_SYNC_V1::';
-
-(function applyIncomingWindowSync(){
-  try{
-    if(window.name && window.name.indexOf(HEBRON_SYNC_MARKER) === 0){
-      const payload = JSON.parse(window.name.slice(HEBRON_SYNC_MARKER.length));
-      if(payload && Array.isArray(payload.exhibits)){
-        localStorage.setItem('hebron_exhibits', JSON.stringify(payload.exhibits));
-      }
-      if(payload && Array.isArray(payload.subscriptions)){
-        localStorage.setItem('hebron_subscriptions', JSON.stringify(payload.subscriptions));
-      }
-    }
-  }catch(e){ /* تجاهل أي خطأ بالترميز */ }
-})();
-
-function hebronBuildSyncPayload(){
-  const payload = {};
-  try{ payload.exhibits = JSON.parse(localStorage.getItem('hebron_exhibits')) || []; }catch(e){ payload.exhibits = []; }
-  try{ payload.subscriptions = JSON.parse(localStorage.getItem('hebron_subscriptions')) || []; }catch(e){ payload.subscriptions = []; }
-  return payload;
-}
-
-function syncAndNavigate(url){
-  try{ window.name = HEBRON_SYNC_MARKER + JSON.stringify(hebronBuildSyncPayload()); }catch(e){ /* تجاهل */ }
-  window.location.href = url;
-}
-
-// اعتراض أي نقرة على رابط داخلي (يؤدي لملف .html آخر بنفس الموقع) وتحديث window.name قبل الانتقال إليه
-document.addEventListener('click', function(e){
-  const link = e.target.closest('a[href*=".html"]');
-  if(link && !link.target){
-    try{ window.name = HEBRON_SYNC_MARKER + JSON.stringify(hebronBuildSyncPayload()); }catch(err){ /* تجاهل */ }
-  }
-}, true);
-
 
 // تسميات وأصناف حالة المعرض
 const STATUS_LABEL = { current: 'حالي', upcoming: 'قادم', old: 'قديم' };
@@ -194,18 +166,17 @@ function escapeHtml(str){
 }
 
 // انتقال تلقائي حسب التواريخ:
-// "قادم" الذي بدأ تاريخه يصبح "حالي"، و"حالي" الذي انتهى تاريخه يصبح "قديم"
+// "قادم" الذي انتهى تاريخه يصبح "قديم"
 function runAutoStatusTransition(){
-  const all = getExhibits();
   const today = new Date().toISOString().slice(0,10);
-  let changed = false;
-  all.forEach(ex => {
-    if(ex.status === 'upcoming' && ex.endDate && ex.endDate < today){ ex.status = 'old'; changed = true; }
+  cachedExhibits.forEach(ex => {
+    if(ex.status === 'upcoming' && ex.endDate && ex.endDate < today){
+      ex.status = 'old';
+      saveExhibitDoc(ex).catch(function(e){ console.error('تعذّر تحديث حالة المعرض تلقائيًا:', e); });
+    }
   });
-  if(changed) saveExhibits(all);
-  return all;
+  return cachedExhibits;
 }
-
 
 </script>
 
@@ -253,8 +224,9 @@ function runAutoStatusTransition(){
   </footer>
 
 <script>
+
   // STORAGE_KEY, getExhibits, fmtDate, escapeHtml, runAutoStatusTransition
-  // كلها معرّفة في الملف المشترك بيانات_المعارض.js
+  // كلها معرّفة بالجزء الأول من الكود (متصلة بقاعدة بيانات Firebase)
   const STATUS_KEY = 'old';
 
   function render(){
@@ -306,22 +278,12 @@ function runAutoStatusTransition(){
     }).join('') + '</div>';
   }
 
-  // استقبال دفعات البيانات الصامتة من أداة إدارة المعارض (عبر iframe مخفي + postMessage)
-  window.addEventListener('message', function(e){
-    if(e.data && e.data.type === 'HEBRON_SYNC_PUSH' && e.data.payload){
-      try{
-        if(Array.isArray(e.data.payload.exhibits)){
-          localStorage.setItem('hebron_exhibits', JSON.stringify(e.data.payload.exhibits));
-        }
-        if(Array.isArray(e.data.payload.subscriptions)){
-          localStorage.setItem('hebron_subscriptions', JSON.stringify(e.data.payload.subscriptions));
-        }
-        render();
-      }catch(err){ /* تجاهل */ }
-    }
-  });
+  // الاتصال اللحظي بقاعدة بيانات المعارض: يحدّث الصفحة تلقائيًا فور أي تغيير من أي جهاز
+  db.collection('exhibits').onSnapshot(function(snapshot){
+    cachedExhibits = snapshot.docs.map(d => d.data());
+    render();
+  }, function(err){ console.error('Firestore exhibits error:', err); });
 
-  render();
 </script>
 
 </body>
