@@ -74,7 +74,24 @@
     transition:border-color 180ms ease, box-shadow 180ms ease;
   }
   .field input:focus, .field textarea:focus, .field select:focus{ border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,154,62,0.15); }
-  .field input.date-mask{ direction:ltr; text-align:right; }
+  .field input.date-mask{ direction:ltr; text-align:right; cursor:pointer; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c99a3e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:left 12px center; background-size:16px; padding-left:36px; }
+
+  /* ============ تقويم منبثق مخصص لاختيار التاريخ ============ */
+  .date-cal-popup{ display:none; position:fixed; z-index:9999; width:252px; background:#fff; border:1px solid #ddd0b3; border-radius:14px; box-shadow:0 18px 40px rgba(32,24,15,0.25); padding:12px 14px 14px; font-family:'Tajawal',sans-serif; direction:rtl; }
+  .date-cal-header{ display:flex; align-items:center; justify-content:space-between; gap:4px; margin-bottom:10px; }
+  .date-cal-title{ font-size:13px; font-weight:800; color:var(--ink); flex:1; text-align:center; }
+  .date-cal-nav{ width:24px; height:24px; border-radius:7px; border:1px solid #ddd0b3; background:#fdfbf5; color:var(--olive); font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; transition:background 150ms ease, border-color 150ms ease; }
+  .date-cal-nav:hover{ background:#f3ecdd; border-color:var(--gold-soft); }
+  .date-cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+  .date-cal-weekdays span{ font-size:10px; color:#a99a78; text-align:center; padding:4px 0; font-weight:700; }
+  .date-cal-days span{ aspect-ratio:1/1; }
+  .date-cal-days button{ box-sizing:border-box; width:100%; aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; padding:0; margin:0; font-size:12px; font-family:'Tajawal',sans-serif; color:var(--ink); border:none; background:none; border-radius:8px; cursor:pointer; }
+  .date-cal-days button:hover{ background:#f3ecdd; }
+  .date-cal-days button.is-today{ border:1px solid var(--gold-soft); }
+  .date-cal-days button.is-selected{ background:var(--gold); color:#221a0d; font-weight:800; }
+  .date-cal-footer{ display:flex; justify-content:center; margin-top:8px; padding-top:8px; border-top:1px solid #eee2cb; }
+  .date-cal-today-btn{ border:none; background:none; cursor:pointer; font-size:11.5px; font-weight:700; color:var(--olive); padding:4px 10px; font-family:'Tajawal',sans-serif; }
+  .date-cal-today-btn:hover{ text-decoration:underline; }
   .field textarea{ min-height:140px; resize:vertical; line-height:1.8; }
   .row2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
   @media (max-width:640px){ .row2{ grid-template-columns:1fr; } }
@@ -262,11 +279,11 @@
             <div class="row2">
               <div class="field">
                 <label for="startDate">تاريخ البداية *</label>
-                <input type="text" id="startDate" class="date-mask" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off" required>
+                <input type="text" id="startDate" class="date-mask" placeholder="اختر التاريخ" autocomplete="off" readonly required>
               </div>
               <div class="field">
                 <label for="endDate">تاريخ النهاية *</label>
-                <input type="text" id="endDate" class="date-mask" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off" required>
+                <input type="text" id="endDate" class="date-mask" placeholder="اختر التاريخ" autocomplete="off" readonly required>
               </div>
             </div>
           </fieldset>
@@ -346,8 +363,8 @@
               <div class="field"><label for="editDescription">وصف المعرض *</label><textarea id="editDescription" required></textarea></div>
               <div class="field"><label for="editLocation">مكان المعرض *</label><input type="text" id="editLocation" required></div>
               <div class="row2">
-                <div class="field"><label for="editStartDate">تاريخ البداية *</label><input type="text" id="editStartDate" class="date-mask" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off" required></div>
-                <div class="field"><label for="editEndDate">تاريخ النهاية *</label><input type="text" id="editEndDate" class="date-mask" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off" required></div>
+                <div class="field"><label for="editStartDate">تاريخ البداية *</label><input type="text" id="editStartDate" class="date-mask" placeholder="اختر التاريخ" autocomplete="off" readonly required></div>
+                <div class="field"><label for="editEndDate">تاريخ النهاية *</label><input type="text" id="editEndDate" class="date-mask" placeholder="اختر التاريخ" autocomplete="off" readonly required></div>
               </div>
               <div class="field">
                 <label>صورة/ملف المعرض</label>
@@ -465,21 +482,117 @@ function dmyToISO(dmy){
 function isValidDMY(dmy){
   return dmyToISO(dmy) !== '';
 }
-function attachDateMask(id){
-  const el = document.getElementById(id);
-  if(!el) return;
-  el.addEventListener('input', () => {
-    let digits = el.value.replace(/\D/g, '').slice(0, 8);
-    let formatted = digits;
-    if(digits.length > 4){
-      formatted = digits.slice(0,2) + '/' + digits.slice(2,4) + '/' + digits.slice(4);
-    } else if(digits.length > 2){
-      formatted = digits.slice(0,2) + '/' + digits.slice(2);
+// ============ تقويم منبثق مخصص (اختيار بالنقر فقط، بدون كتابة) ============
+let dateCalPopup = null;
+let dateCalActiveInput = null;
+let dateCalViewYear, dateCalViewMonth;
+const dateCalMonths = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const dateCalWeekdays = ['أحد','إثن','ثلا','أرب','خمي','جمع','سبت'];
+
+function buildDateCalPopup(){
+  if(dateCalPopup) return dateCalPopup;
+  dateCalPopup = document.createElement('div');
+  dateCalPopup.className = 'date-cal-popup';
+  document.body.appendChild(dateCalPopup);
+  document.addEventListener('mousedown', (e) => {
+    if(dateCalPopup && dateCalPopup.style.display === 'block' && !dateCalPopup.contains(e.target) && e.target !== dateCalActiveInput){
+      closeDateCal();
     }
-    el.value = formatted;
+  });
+  window.addEventListener('resize', () => { if(dateCalActiveInput) positionDateCal(); });
+  window.addEventListener('scroll', () => { if(dateCalActiveInput) positionDateCal(); }, true);
+  return dateCalPopup;
+}
+
+function positionDateCal(){
+  const r = dateCalActiveInput.getBoundingClientRect();
+  dateCalPopup.style.top = Math.min(r.bottom + 6, window.innerHeight - 320) + 'px';
+  dateCalPopup.style.left = Math.max(8, Math.min(r.left, window.innerWidth - 270)) + 'px';
+}
+
+function renderDateCal(){
+  const today = new Date();
+  const firstWeekday = new Date(dateCalViewYear, dateCalViewMonth, 1).getDay();
+  const daysInMonth = new Date(dateCalViewYear, dateCalViewMonth + 1, 0).getDate();
+
+  let selDay = null, selMonth = null, selYear = null;
+  const curISO = dmyToISO(dateCalActiveInput.value.trim());
+  if(curISO){
+    const p = curISO.split('-');
+    selYear = Number(p[0]); selMonth = Number(p[1]) - 1; selDay = Number(p[2]);
+  }
+
+  let html = '<div class="date-cal-header">';
+  html += '<button type="button" class="date-cal-nav" data-nav="y-prev" title="السنة السابقة">«</button>';
+  html += '<button type="button" class="date-cal-nav" data-nav="m-prev" title="الشهر السابق">‹</button>';
+  html += '<span class="date-cal-title">' + dateCalMonths[dateCalViewMonth] + ' ' + dateCalViewYear + '</span>';
+  html += '<button type="button" class="date-cal-nav" data-nav="m-next" title="الشهر التالي">›</button>';
+  html += '<button type="button" class="date-cal-nav" data-nav="y-next" title="السنة التالية">»</button>';
+  html += '</div>';
+  html += '<div class="date-cal-grid date-cal-weekdays">';
+  dateCalWeekdays.forEach(d => html += '<span>' + d + '</span>');
+  html += '</div>';
+  html += '<div class="date-cal-grid date-cal-days">';
+  for(let i = 0; i < firstWeekday; i++) html += '<span></span>';
+  for(let d = 1; d <= daysInMonth; d++){
+    const isToday = today.getFullYear() === dateCalViewYear && today.getMonth() === dateCalViewMonth && today.getDate() === d;
+    const isSel = selYear === dateCalViewYear && selMonth === dateCalViewMonth && selDay === d;
+    html += '<button type="button" class="date-cal-day' + (isToday ? ' is-today' : '') + (isSel ? ' is-selected' : '') + '" data-day="' + d + '">' + d + '</button>';
+  }
+  html += '</div>';
+  html += '<div class="date-cal-footer"><button type="button" class="date-cal-today-btn">اليوم</button></div>';
+  dateCalPopup.innerHTML = html;
+
+  dateCalPopup.querySelector('[data-nav="y-prev"]').addEventListener('click', () => { dateCalViewYear--; renderDateCal(); });
+  dateCalPopup.querySelector('[data-nav="m-prev"]').addEventListener('click', () => { dateCalViewMonth--; if(dateCalViewMonth < 0){ dateCalViewMonth = 11; dateCalViewYear--; } renderDateCal(); });
+  dateCalPopup.querySelector('[data-nav="m-next"]').addEventListener('click', () => { dateCalViewMonth++; if(dateCalViewMonth > 11){ dateCalViewMonth = 0; dateCalViewYear++; } renderDateCal(); });
+  dateCalPopup.querySelector('[data-nav="y-next"]').addEventListener('click', () => { dateCalViewYear++; renderDateCal(); });
+  dateCalPopup.querySelectorAll('.date-cal-day').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const d = Number(btn.getAttribute('data-day'));
+      const dd = String(d).padStart(2, '0');
+      const mm = String(dateCalViewMonth + 1).padStart(2, '0');
+      dateCalActiveInput.value = dd + '/' + mm + '/' + dateCalViewYear;
+      dateCalActiveInput.dispatchEvent(new Event('input', { bubbles: true }));
+      dateCalActiveInput.dispatchEvent(new Event('change', { bubbles: true }));
+      closeDateCal();
+    });
+  });
+  dateCalPopup.querySelector('.date-cal-today-btn').addEventListener('click', () => {
+    const t = new Date();
+    dateCalViewYear = t.getFullYear(); dateCalViewMonth = t.getMonth();
+    renderDateCal();
   });
 }
-['startDate','endDate','editStartDate','editEndDate'].forEach(attachDateMask);
+
+function openDateCal(input){
+  buildDateCalPopup();
+  dateCalActiveInput = input;
+  const curISO = dmyToISO(input.value.trim());
+  if(curISO){
+    const p = curISO.split('-');
+    dateCalViewYear = Number(p[0]); dateCalViewMonth = Number(p[1]) - 1;
+  } else {
+    const t = new Date();
+    dateCalViewYear = t.getFullYear(); dateCalViewMonth = t.getMonth();
+  }
+  renderDateCal();
+  dateCalPopup.style.display = 'block';
+  positionDateCal();
+}
+
+function closeDateCal(){
+  if(dateCalPopup) dateCalPopup.style.display = 'none';
+  dateCalActiveInput = null;
+}
+
+function attachDateCalendar(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('click', () => openDateCal(el));
+  el.addEventListener('focus', () => openDateCal(el));
+}
+['startDate','endDate','editStartDate','editEndDate'].forEach(attachDateCalendar);
 
 // أرشفة تلقائية: فقط "قادم" الذي انتهى تاريخه ينتقل لـ"قديم"
 function runAutoStatusTransition(){
