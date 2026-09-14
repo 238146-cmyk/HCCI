@@ -3,145 +3,173 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>طلبات الاشتراك في المعارض | غرفة تجارة وصناعة محافظةالخليل</title>
+<title>إدارة المعارض | غرفة تجارة وصناعة محافظةالخليل</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --stone-dark:#20180f;
-    --olive:#4b5e3a;
-    --olive-light:#6f8a56;
-    --gold:#c99a3e;
-    --gold-soft:#e0bd6f;
-    --cream:#f4ecdb;
-    --cream-dim:#d9cdb2;
-    --paper:#faf6ec;
-    --ink:#241d14;
+    --stone-dark:#20180f; --olive:#4b5e3a; --olive-light:#6f8a56;
+    --gold:#c99a3e; --gold-soft:#e0bd6f; --cream:#f4ecdb; --cream-dim:#d9cdb2;
+    --paper:#faf6ec; --ink:#241d14;
   }
   *{margin:0;padding:0;box-sizing:border-box;}
   html{scroll-behavior:smooth;}
   body{ font-family:'Tajawal',sans-serif; background:var(--paper); color:var(--ink); min-height:100vh; display:flex; flex-direction:column; }
   a{ color:inherit; }
 
-  header{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:14px 6vw; background:var(--stone-dark); color:var(--cream);
-    box-shadow:0 2px 18px rgba(0,0,0,0.18);
-  }
+  header{ display:flex; align-items:center; justify-content:space-between; padding:14px 6vw; background:var(--stone-dark); color:var(--cream); box-shadow:0 2px 18px rgba(0,0,0,0.18); }
   .brand{ display:flex; align-items:center; gap:12px; }
   .brand img{ width:56px; height:50px; border-radius:10px; object-fit:contain; background:#fbf6ea; padding:4px; box-shadow:0 0 0 1px rgba(201,154,62,0.5); }
   .brand-text{ display:flex; flex-direction:column; line-height:1.3; }
   .brand-text strong{ font-family:'Tajawal',sans-serif; font-size:17px; color:var(--cream); }
   .brand-text span{ font-size:11px; letter-spacing:0.08em; color:var(--gold-soft); }
-  .back-btn{
-    display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--cream-dim);
-    text-decoration:none; padding:8px 16px; border-radius:999px; border:1px solid rgba(224,189,111,0.3);
-    transition:color 200ms ease, background 200ms ease, border-color 200ms ease;
-  }
+  .back-btn{ display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--cream-dim); text-decoration:none; padding:8px 16px; border-radius:999px; border:1px solid rgba(224,189,111,0.3); transition:color 200ms ease, background 200ms ease, border-color 200ms ease; }
   .back-btn:hover{ color:var(--gold-soft); background:rgba(255,255,255,0.06); border-color:var(--gold-soft); }
   .back-btn svg{ width:15px; height:15px; }
 
-  .page-hero{ padding:40px 6vw 22px; text-align:center; border-bottom:1px solid #e9e0cc; }
+  .page-hero{ padding:34px 6vw 0; text-align:center; }
   .page-eyebrow{ display:inline-block; font-size:12px; letter-spacing:0.14em; color:var(--olive); text-transform:uppercase; font-weight:700; margin-bottom:10px; }
   .page-hero h1{ font-family:'Tajawal',sans-serif; font-weight:700; font-size:clamp(24px, 3.4vw, 32px); margin-bottom:6px; }
-  .page-hero p{ font-size:13.5px; color:#6b6150; max-width:640px; margin:0 auto; line-height:1.85; }
+  .page-hero p{ font-size:13.5px; color:#6b6150; max-width:640px; margin:0 auto 20px; line-height:1.85; }
+
+  /* ---------- التبويبات ---------- */
+  .tabs-bar{
+    display:flex; justify-content:center; gap:10px; padding:0 6vw 20px;
+    border-bottom:1px solid #e9e0cc; flex-wrap:wrap;
+  }
+  .tab-btn{
+    display:inline-flex; align-items:center; gap:8px; padding:11px 24px; border-radius:999px;
+    border:1.5px solid #ddd0b3; background:#fff; color:#6b6150; cursor:pointer;
+    font-family:'Tajawal',sans-serif; font-weight:800; font-size:13.5px; transition:all 200ms ease;
+  }
+  .tab-btn svg{ width:16px; height:16px; }
+  .tab-btn.active{ background:var(--olive); border-color:var(--olive); color:#fff; }
+  .tab-btn:not(.active):hover{ border-color:var(--gold-soft); }
 
   main{ flex:1; }
-  .content-wrap{ max-width:1200px; margin:0 auto; padding:34px 6vw 60px; }
+  .content-wrap{ max-width:900px; margin:0 auto; padding:34px 6vw 60px; }
+  .content-wrap.wide{ max-width:1200px; }
 
-  .notice{ border-radius:14px; padding:14px 18px; font-size:13px; margin-bottom:22px; line-height:1.8; }
+  .tab-panel{ display:none; }
+  .tab-panel.active{ display:block; }
+
+  .notice{ display:none; border-radius:14px; padding:14px 18px; font-size:13.5px; margin-bottom:22px; line-height:1.8; }
+  .notice.show{ display:block; }
+  .notice-success{ background:#eaf3e4; border:1px solid #bcd8a9; color:#3a5c2a; }
+  .notice-error{ background:#fbeaea; border:1px solid #eab8b8; color:#8a3030; }
   .notice-info{ background:#fbf1de; border:1px solid #eed9ab; color:#7a5a15; }
 
+  fieldset{ border:1px solid #e9e0cc; border-radius:18px; padding:22px 22px 24px; margin-bottom:22px; background:#fff; }
+  legend{ font-family:'Tajawal',sans-serif; font-size:17px; color:var(--olive); padding:0 10px; display:flex; align-items:center; gap:8px; }
+  legend svg{ width:19px; height:19px; }
+
+  .field{ margin-bottom:16px; }
+  .field:last-child{ margin-bottom:0; }
+  .field label{ display:block; font-size:13px; font-weight:700; color:var(--ink); margin-bottom:6px; }
+  .field .hint{ font-size:11.5px; color:#8a7c63; margin-top:5px; line-height:1.7; }
+  .field input[type="text"], .field input[type="date"], .field input[type="number"], .field textarea, .field select{
+    width:100%; padding:11px 13px; border-radius:12px; border:1px solid #ddd0b3;
+    background:#fdfbf5; color:var(--ink); font-family:'Tajawal',sans-serif; font-size:14px; outline:none;
+    transition:border-color 180ms ease, box-shadow 180ms ease;
+  }
+  .field input:focus, .field textarea:focus, .field select:focus{ border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,154,62,0.15); }
+  .field input.date-mask{ direction:ltr; text-align:right; }
+  .field textarea{ min-height:140px; resize:vertical; line-height:1.8; }
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:640px){ .row2{ grid-template-columns:1fr; } }
+
+  .file-drop{ border:2px dashed #ddd0b3; border-radius:14px; padding:22px; text-align:center; cursor:pointer; background:#fdfbf5; transition:border-color 180ms ease, background 180ms ease; }
+  .file-drop:hover{ border-color:var(--gold-soft); background:#fbf6ea; }
+  .file-drop svg{ width:30px; height:30px; color:var(--gold); margin-bottom:8px; }
+  .file-drop p{ font-size:13px; color:#6b6150; }
+  .file-drop span{ display:block; font-size:11.5px; color:#a99a78; margin-top:4px; }
+  #fileInput{ display:none; }
+  .file-preview{ display:none; align-items:center; gap:12px; margin-top:12px; padding:10px 14px; background:#f3ecdd; border-radius:12px; font-size:12.5px; color:#4b3f27; }
+  .file-preview.show{ display:flex; }
+  .file-preview img{ width:52px; height:52px; object-fit:cover; border-radius:8px; }
+  .file-preview .pdf-icon{ width:52px; height:52px; border-radius:8px; background:#c9463f; color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; }
+  .file-preview .remove-file{ margin-right:auto; cursor:pointer; color:#a13333; font-weight:700; background:none; border:none; font-size:12.5px; }
+
+  .checklist{ display:flex; flex-direction:column; gap:10px; }
+  .check-item{ display:flex; align-items:flex-start; gap:10px; padding:10px 12px; border:1px solid #eee2c8; border-radius:12px; }
+  .check-item input{ margin-top:3px; width:16px; height:16px; accent-color:var(--olive); flex-shrink:0; }
+  .check-item.locked{ background:#f7f2e6; }
+  .check-item .ci-text strong{ font-size:13px; display:block; }
+  .check-item .ci-text span{ font-size:11.5px; color:#8a7c63; }
+  .lock-badge{ margin-right:auto; font-size:10px; color:#a99a78; background:#eee2c8; padding:2px 8px; border-radius:999px; white-space:nowrap; }
+  .add-field-row{ display:flex; gap:10px; }
+  .add-field-row input{ flex:1; }
+  .add-field-btn{ padding:0 20px; border-radius:12px; border:none; cursor:pointer; white-space:nowrap; background:var(--olive); color:#fff; font-family:'Tajawal',sans-serif; font-weight:800; font-size:13px; }
+  .add-field-btn:hover{ background:var(--olive-light); }
+  /* حاوية شفافة عشان عناصر الحقول المخصصة تنعرض كجزء طبيعي من نفس عمود القائمة (checklist) */
+  .custom-fields-inline{ display:contents; }
+  .custom-field-chip{
+    display:flex; align-items:center; gap:10px; padding:10px 12px;
+    border:1px solid #d7c9a3; border-radius:12px; background:#faf3e2; font-size:13px; color:#4b3f27;
+  }
+  .custom-field-chip .cf-text{ flex:1; }
+  .custom-field-chip .cf-text strong{ font-size:13px; display:block; }
+  .custom-field-chip .cf-text span{ font-size:11.5px; color:#8a7c63; }
+  .custom-field-chip .cf-added-badge{ font-size:10px; color:#7a5a15; background:#f3e4bf; padding:2px 8px; border-radius:999px; white-space:nowrap; }
+  .custom-field-chip .remove-field-btn{ background:none; border:none; color:#a13333; font-weight:800; cursor:pointer; font-size:18px; line-height:1; padding:0 4px; }
+
+  .submit-row{ display:flex; justify-content:flex-end; gap:12px; margin-top:8px; }
+  .btn{ display:inline-flex; align-items:center; gap:8px; padding:13px 30px; border-radius:999px; font-family:'Tajawal',sans-serif; font-weight:800; font-size:14.5px; cursor:pointer; border:none; text-decoration:none; transition:transform 200ms ease, box-shadow 200ms ease; }
+  .btn-primary{ background:linear-gradient(180deg, var(--gold-soft), var(--gold)); color:#221a0d; box-shadow:0 10px 24px rgba(201,154,62,0.3), inset 0 1px 0 rgba(255,255,255,0.5); }
+  .btn-primary:hover{ transform:translateY(-2px); }
+  .btn-ghost{ background:#f3ecdd; color:#6b6150; }
+  .btn-ghost:hover{ background:#ece3cd; }
+
+  /* ---------- قائمة تعديل المعارض ---------- */
   .toolbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; flex-wrap:wrap; gap:10px; }
   .toolbar h2{ font-family:'Tajawal',sans-serif; font-size:19px; color:var(--ink); }
-  .count-pill{ font-size:12px; font-weight:700; background:#f3ecdd; color:var(--olive); padding:5px 14px; border-radius:999px; }
-  .toolbar-actions{ display:flex; align-items:center; gap:10px; }
-  .print-btn{
-    display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:800;
-    padding:9px 20px; border-radius:999px; border:none; cursor:pointer;
-    background:linear-gradient(180deg, var(--gold-soft), var(--gold)); color:#221a0d;
-    font-family:'Tajawal',sans-serif; box-shadow:0 8px 18px rgba(201,154,62,0.28);
-    transition:transform 200ms ease;
-  }
-  .print-btn:hover{ transform:translateY(-2px); }
-  .print-btn svg{ width:15px; height:15px; }
-  .excel-btn{
-    display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:800;
-    padding:9px 20px; border-radius:999px; border:none; cursor:pointer;
-    background:linear-gradient(180deg, #6f8a56, #4b5e3a); color:#f4ecdb;
-    font-family:'Tajawal',sans-serif; box-shadow:0 8px 18px rgba(75,94,58,0.28);
-    transition:transform 200ms ease;
-  }
-  .excel-btn:hover{ transform:translateY(-2px); }
-  .excel-btn svg{ width:15px; height:15px; }
-
-  .print-header{ display:none; }
-
-  @media print{
-    header, .back-btn, .notice, .toolbar-actions, .del-btn, footer{ display:none !important; }
-    .print-header{
-      display:block; text-align:center; margin-bottom:18px;
-    }
-    .print-header h1{ font-family:'Tajawal',sans-serif; font-size:20px; margin-bottom:4px; }
-    .print-header p{ font-size:12px; color:#555; }
-    body{ background:#fff; }
-    .content-wrap{ padding:0; max-width:100%; }
-    .table-scroll{ border:none; }
-    table{ min-width:0; width:100%; font-size:10.5px; }
-    thead th{ background:#eee !important; color:#111 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-    tbody tr:hover{ background:none; }
-    .sector-tag{ background:#eee !important; color:#111 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-    .page-hero{ display:none; }
-  }
-
-  .empty-state{
-    background:#fff; border:1px dashed #d9cdae; border-radius:20px; padding:50px 30px; text-align:center; color:#8a7c63;
-  }
+  .filters{ display:flex; gap:8px; flex-wrap:wrap; }
+  .filter-btn{ font-size:12.5px; padding:7px 16px; border-radius:999px; border:1px solid #ddd0b3; background:#fff; color:#6b6150; cursor:pointer; font-family:'Tajawal',sans-serif; font-weight:700; transition:all 180ms ease; }
+  .filter-btn.active{ background:var(--olive); border-color:var(--olive); color:#fff; }
+  .empty-state{ background:#fff; border:1px dashed #d9cdae; border-radius:20px; padding:50px 30px; text-align:center; color:#8a7c63; }
   .empty-state svg{ width:44px; height:44px; color:var(--gold); margin-bottom:14px; }
   .empty-state h3{ font-family:'Tajawal',sans-serif; font-size:18px; color:var(--ink); margin-bottom:8px; }
+  .empty-state a{ color:var(--olive); font-weight:700; text-decoration:underline; }
+  .exhibits-grid{ display:flex; flex-direction:column; gap:16px; }
+  .exhibit-card{ background:#fff; border:1px solid #e9e0cc; border-radius:18px; padding:20px 22px; display:flex; gap:18px; align-items:flex-start; flex-wrap:wrap; }
+  .ex-thumb{ width:84px; height:84px; border-radius:14px; overflow:hidden; flex-shrink:0; background:#f3ecdd; display:flex; align-items:center; justify-content:center; color:#a99a78; font-size:11px; font-weight:800; text-align:center; }
+  .ex-thumb img{ width:100%; height:100%; object-fit:contain; }
+  .ex-body{ flex:1; min-width:220px; }
+  .ex-top{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:6px; }
+  .ex-title{ font-family:'Tajawal',sans-serif; font-size:18px; }
+  .badge{ font-size:10.5px; font-weight:800; padding:3px 12px; border-radius:999px; }
+  .badge-current{ background:#eaf3e4; color:#3a5c2a; }
+  .badge-upcoming{ background:#fdf3de; color:#8a6a15; }
+  .badge-old{ background:#efeae0; color:#7a6d52; }
+  .ex-meta{ font-size:12px; color:#8a7c63; margin-bottom:8px; display:flex; gap:14px; flex-wrap:wrap; }
+  .ex-meta span{ display:inline-flex; align-items:center; gap:4px; }
+  .ex-desc{ font-size:13px; color:#5a5040; line-height:1.8; max-height:3.6em; overflow:hidden; margin-bottom:10px; }
+  .ex-actions{ display:flex; flex-direction:column; gap:8px; flex-shrink:0; min-width:180px; }
+  .ex-btn{ display:inline-flex; align-items:center; gap:6px; justify-content:center; font-size:12px; font-weight:700; padding:8px 16px; border-radius:999px; cursor:pointer; border:none; font-family:'Tajawal',sans-serif; white-space:nowrap; }
+  .ex-btn svg{ width:14px; height:14px; }
+  .btn-edit{ background:#f3ecdd; color:var(--olive); }
+  .btn-edit:hover{ background:#ece3cd; }
+  .btn-delete{ background:#fbeaea; color:#a13333; }
+  .btn-delete:hover{ background:#f6dcdc; }
+  .move-select{ font-size:12px; font-family:'Tajawal',sans-serif; font-weight:700; padding:8px 10px; border-radius:999px; border:1px solid #ddd0b3; background:#fff; color:#6b6150; cursor:pointer; }
 
-  .table-scroll{ overflow-x:auto; background:#fff; border:1px solid #e9e0cc; border-radius:18px; }
-  table{ width:100%; border-collapse:collapse; min-width:1100px; }
-  thead th{
-    background:var(--stone-dark); color:var(--cream); font-size:12px; font-weight:700;
-    padding:12px 14px; text-align:right; white-space:nowrap;
-  }
-  tbody td{
-    padding:12px 14px; font-size:12.5px; color:#4b3f27; border-top:1px solid #eee2c8; vertical-align:top;
-  }
-  tbody tr:hover{ background:#fbf6ea; }
-  .cell-name{ font-weight:700; }
-  .cell-exhibit{ color:var(--olive); font-weight:700; white-space:nowrap; }
-  .sector-tag{
-    display:inline-block; font-size:10.5px; font-weight:800; padding:3px 10px; border-radius:999px;
-    background:#eaf3e4; color:#3a5c2a; margin-bottom:4px; white-space:nowrap;
-  }
-  .sector-detail{ font-size:11px; color:#8a7c63; display:block; max-width:180px; }
-  .del-btn{
-    border:none; background:#fbeaea; color:#a13333; font-size:11.5px; font-weight:700;
-    padding:6px 12px; border-radius:999px; cursor:pointer; white-space:nowrap;
-  }
-  .del-btn:hover{ background:#f6dcdc; }
+  #editPanel{ display:none; }
+  #editPanel.show{ display:block; }
+  .type-options{ display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
+  @media (max-width:640px){ .type-options{ grid-template-columns:1fr; } }
+  .type-opt{ border:1.5px solid #ddd0b3; border-radius:12px; padding:10px 12px; cursor:pointer; font-size:12.5px; font-weight:700; text-align:center; }
+  .type-opt:has(input:checked){ border-color:var(--olive); background:#f2f6ee; color:var(--olive); }
+  .type-opt input{ margin-left:5px; }
+  .file-drop-sm{ border:2px dashed #ddd0b3; border-radius:12px; padding:14px; text-align:center; cursor:pointer; font-size:12.5px; color:#6b6150; background:#fdfbf5; }
+  .file-drop-sm:hover{ border-color:var(--gold-soft); }
+  .edit-img-preview{ display:none; align-items:center; gap:10px; margin-top:10px; font-size:12px; }
+  .edit-img-preview.show{ display:flex; }
+  .edit-img-preview img{ width:50px; height:50px; object-fit:cover; border-radius:8px; }
+  .edit-img-preview .pdf-icon-sm{ width:50px; height:50px; border-radius:8px; background:#c9463f; color:#fff; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; flex-shrink:0; }
 
   footer{ padding:24px 6vw 22px; text-align:center; border-top:1px solid #e9e0cc; font-size:11.5px; color:#b5aa8f; }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyCb3QYJ1bbvVPrW6YNS-tZSByznDkjKumk",
-    authDomain: "hcci-cb444.firebaseapp.com",
-    projectId: "hcci-cb444",
-    storageBucket: "hcci-cb444.firebasestorage.app",
-    messagingSenderId: "692029433744",
-    appId: "1:692029433744:web:2544c75f6e3588e8bf7515",
-    measurementId: "G-EK39JBYDEC"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-</script>
 </head>
 <body>
 
@@ -160,178 +188,732 @@
   </header>
 
   <section class="page-hero">
-    <span class="page-eyebrow">طلبات الاشتراك</span>
-    <h1>طلبات الاشتراك في المعارض</h1>
-    <p>كل طلبات الاشتراك اللي عبّاها المستخدمون من صفحة "المعارض القادمة" بتظهر هون تلقائيًا.</p>
+    <span class="page-eyebrow">إدارة المعارض</span>
+    <h1>نشر وتعديل المعارض</h1>
+    <p>انشر معرضًا جديدًا أو راجع وعدّل المعارض الموجودة — كل شي بنفس الصفحة، فأي معرض تنشره يظهر فورًا بالتبويب الثاني بدون أي تأخير.</p>
   </section>
 
+  <div class="tabs-bar">
+    <button type="button" class="tab-btn" id="tabBtnPublish" onclick="switchTab('publish')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      نشر معرض جديد
+    </button>
+    <button type="button" class="tab-btn" id="tabBtnEdit" onclick="switchTab('edit')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      تعديل المعارض
+    </button>
+  </div>
+
   <main>
-    <div class="content-wrap">
+    <!-- ============ تبويب: نشر معرض جديد ============ -->
+    <div class="tab-panel" id="panelPublish">
+      <div class="content-wrap">
 
-
-      <div class="print-header">
-        <h1>غرفة تجارة وصناعة محافظة الخليل</h1>
-        <p>تقرير طلبات الاشتراك في المعارض</p>
-      </div>
-
-      <div class="toolbar">
-        <h2>كل طلبات الاشتراك</h2>
-        <div class="toolbar-actions">
-          <span class="count-pill" id="countPill">0 طلب</span>
-          <button type="button" class="excel-btn" id="excelBtn">
-            تنزيل Excel
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="19"/><line x1="15" y1="13" x2="9" y2="19"/></svg>
-          </button>
-          <button type="button" class="print-btn" id="printBtn">
-            طباعة / تصدير PDF
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-          </button>
+        <div class="notice notice-info show">
+          <strong>ملاحظة:</strong> بعد النشر، بيظهر المعرض فورًا بتبويب "تعديل المعارض" بنفس الصفحة (بدون أي انتقال لملف تاني)، وكمان بيتحفظ ليظهر بصفحة "المعارض القادمة" العامة على الموقع.
         </div>
+
+        <div class="notice notice-success" id="successNotice">تم نشر المعرض بنجاح ✅</div>
+        <div class="notice notice-error" id="errorNotice">الرجاء تعبئة كل الحقول المطلوبة.</div>
+
+        <form id="exhibitForm" novalidate>
+
+          <fieldset>
+            <legend>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+              معلومات المعرض
+            </legend>
+            <div class="field">
+              <label for="title">اسم المعرض *</label>
+              <input type="text" id="title" placeholder="مثال: معرض الخليل التجاري السنوي" required>
+            </div>
+            <div class="field">
+              <label for="details">معلومات المعرض *</label>
+              <textarea id="details" placeholder="اكتب كل المعلومات الخاصة بالمعرض..." required></textarea>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+              ملف المعرض
+            </legend>
+            <div class="field">
+              <label>ارفع صورة أو ملف PDF للمعرض</label>
+              <div class="file-drop" id="fileDrop">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <p>اضغط هنا لاختيار صورة أو ملف PDF، أو اسحبه وأفلته</p>
+                <span>الحد الأقصى الموصى به لحجم الملف: 3 ميجابايت</span>
+              </div>
+              <input type="file" id="fileInput" accept="image/*,application/pdf">
+              <div class="file-preview" id="filePreview">
+                <div id="filePreviewThumb"></div>
+                <span id="filePreviewName"></span>
+                <button type="button" class="remove-file" id="removeFile">إزالة الملف</button>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              تاريخ المعرض
+            </legend>
+            <div class="row2">
+              <div class="field">
+                <label for="startDate">تاريخ البداية *</label>
+                <input type="text" id="startDate" class="date-mask" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off" required>
+              </div>
+              <div class="field">
+                <label for="endDate">تاريخ النهاية *</label>
+                <input type="text" id="endDate" class="date-mask" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off" required>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              مكان المعرض
+            </legend>
+            <div class="field">
+              <label for="location">مكان المعرض *</label>
+              <input type="text" id="location" placeholder="مثال: قاعة غرفة تجارة وصناعة الخليل" required>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg>
+              متطلبات الاشتراك من المشترك
+            </legend>
+            <p class="hint" style="margin-bottom:14px;">حدّد الحقول اللي بدك ياها تظهر بنموذج الاشتراك لهذا المعرض. الاسم ورقم الهاتف مطلوبين دايمًا.</p>
+            <div class="checklist">
+              <label class="check-item locked">
+                <input type="checkbox" checked disabled>
+                <div class="ci-text"><strong>الاسم كامل كما بالباسبورت</strong></div>
+                <span class="lock-badge">إلزامي</span>
+              </label>
+              <label class="check-item locked">
+                <input type="checkbox" checked disabled>
+                <div class="ci-text"><strong>رقم الهاتف</strong></div>
+                <span class="lock-badge">إلزامي</span>
+              </label>
+              <label class="check-item"><input type="checkbox" id="reqAddress" checked><div class="ci-text"><strong>العنوان</strong></div></label>
+              <label class="check-item"><input type="checkbox" id="reqCompany" checked><div class="ci-text"><strong>اسم الشركة</strong></div></label>
+              <label class="check-item"><input type="checkbox" id="reqMembership" checked><div class="ci-text"><strong>رقم العضوية</strong></div></label>
+              <label class="check-item"><input type="checkbox" id="reqPassportNumber" checked><div class="ci-text"><strong>رقم الباسبورت</strong></div></label>
+              <label class="check-item"><input type="checkbox" id="reqPassportExpiry" checked><div class="ci-text"><strong>تاريخ انتهاء الباسبورت</strong></div></label>
+              <label class="check-item"><input type="checkbox" id="reqPrimarySector" checked><div class="ci-text"><strong>Primary Sector</strong></div></label>
+              <label class="check-item"><input type="checkbox" id="reqEmail" checked><div class="ci-text"><strong>البريد الإلكتروني</strong></div></label>
+              <div id="customFieldsList" class="custom-fields-inline"></div>
+            </div>
+            <div class="field" style="margin-top:18px;">
+              <label>إضافة حقل جديد مطلوب من المشترك (اختياري)</label>
+              <div class="add-field-row">
+                <input type="text" id="newFieldInput" placeholder="مثال: اسم الشخص المرافق">
+                <button type="button" class="add-field-btn" id="addFieldBtn">+ إضافة</button>
+              </div>
+            </div>
+          </fieldset>
+
+          <div class="submit-row">
+            <button type="reset" class="btn btn-ghost">تفريغ النموذج</button>
+            <button type="submit" class="btn btn-primary">
+              نشر المعرض
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </button>
+          </div>
+        </form>
       </div>
+    </div>
 
-      <div id="requestsContainer"></div>
+    <!-- ============ تبويب: تعديل المعارض ============ -->
+    <div class="tab-panel" id="panelEdit">
+      <div class="content-wrap wide">
 
+        <div class="notice notice-info show">
+          يظهر هنا فورًا أي معرض تنشره من التبويب الأول، بالإضافة لكل المعارض المخزّنة سابقًا. عدّل، انقل بين الأنواع، أو احذف أي معرض من هنا.
+        </div>
+
+        <div id="editPanel">
+          <form id="editForm">
+            <input type="hidden" id="editId">
+            <input type="hidden" id="editIndexHint">
+            <fieldset>
+              <legend>تعديل بيانات المعرض</legend>
+              <div class="field"><label for="editTitle">اسم المعرض *</label><input type="text" id="editTitle" required></div>
+              <div class="field"><label for="editDescription">وصف المعرض *</label><textarea id="editDescription" required></textarea></div>
+              <div class="field"><label for="editLocation">مكان المعرض *</label><input type="text" id="editLocation" required></div>
+              <div class="row2">
+                <div class="field"><label for="editStartDate">تاريخ البداية *</label><input type="text" id="editStartDate" class="date-mask" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off" required></div>
+                <div class="field"><label for="editEndDate">تاريخ النهاية *</label><input type="text" id="editEndDate" class="date-mask" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off" required></div>
+              </div>
+              <div class="field">
+                <label>صورة/ملف المعرض</label>
+                <div class="file-drop-sm" id="editFileDrop">اضغط هنا لاستبدال ملف المعرض (اختياري)</div>
+                <input type="file" id="editFileInput" accept="image/*,application/pdf" style="display:none;">
+                <div class="edit-img-preview" id="editImgPreview">
+                  <div id="editImgPreviewThumb"></div>
+                  <span id="editImgPreviewName"></span>
+                </div>
+              </div>
+              <div class="field">
+                <label>نوع المعرض</label>
+                <div class="type-options" style="grid-template-columns:repeat(2, 1fr);">
+                  <label class="type-opt"><input type="radio" name="editStatus" value="upcoming"> قادم / مستقبلي</label>
+                  <label class="type-opt"><input type="radio" name="editStatus" value="old"> قديم</label>
+                </div>
+              </div>
+              <div class="submit-row">
+                <button type="button" class="btn btn-ghost" id="cancelEdit">إلغاء</button>
+                <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+              </div>
+            </fieldset>
+          </form>
+        </div>
+
+        <div class="toolbar">
+          <h2>جميع المعارض</h2>
+          <div class="filters">
+            <button class="filter-btn active" data-filter="all">الكل</button>
+            <button class="filter-btn" data-filter="upcoming">قادم</button>
+            <button class="filter-btn" data-filter="old">قديم</button>
+          </div>
+        </div>
+
+        <div id="exhibitsContainer"></div>
+      </div>
     </div>
   </main>
 
-  <footer>
-    © غرفة تجارة وصناعة محافظة الخليل — جميع الحقوق محفوظة
-    <br>Developer: Tagreed Zaid
-  </footer>
+  <footer>© غرفة تجارة وصناعة محافظة الخليل — جميع الحقوق محفوظة<br>Developer: Tagreed Zaid</footer>
 
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCb3QYJ1bbvVPrW6YNS-tZSByznDkjKumk",
+    authDomain: "hcci-cb444.firebaseapp.com",
+    projectId: "hcci-cb444",
+    storageBucket: "hcci-cb444.firebasestorage.app",
+    messagingSenderId: "692029433744",
+    appId: "1:692029433744:web:2544c75f6e3588e8bf7515",
+    measurementId: "G-EK39JBYDEC"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
+<script>
+
+/* ==========================================================
+   دوال إدارة بيانات المعارض — متصلة بقاعدة بيانات Firebase
+   (بديل عن التخزين المحلي القديم localStorage، عشان البيانات
+   تكون مشتركة بين كل الزوار مهما كان جهازهم أو متصفحهم)
+   ========================================================== */
+
+let cachedExhibits = [];
+
+function getExhibits(){ return cachedExhibits; }
+
+// حفظ/تحديث معرض واحد في قاعدة البيانات المشتركة
+function saveExhibitDoc(ex){
+  return db.collection('exhibits').doc(String(ex.id)).set(ex);
+}
+// حذف معرض من قاعدة البيانات المشتركة
+function deleteExhibitDoc(id){
+  return db.collection('exhibits').doc(String(id)).delete();
+}
+
+const STATUS_LABEL = { upcoming: 'قادم', old: 'قديم' };
+const STATUS_BADGE_CLASS = { upcoming:'badge-upcoming', old:'badge-old' };
+const DESTINATION_PAGE = {
+  upcoming: 'المعارض_القادمة.html',
+  old: 'المعارض_السابقة.html'
+};
+
+function fmtDate(d){
+  if(!d) return '—';
+  const p = d.split('-');
+  return p[2] + '/' + p[1] + '/' + p[0];
+}
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str || '';
+  return d.innerHTML;
+}
+
+// ============ خانات التاريخ (يوم/شهر/سنة) ============
+// نستخدم خانة نصية بدل input[type=date] الأصلية عشان نتجنب مشكلة
+// ظهور "شهر/يوم" بالعربي ممزوجة بأرقام إنجليزية حسب لغة المتصفح.
+function isoToDMY(iso){
+  if(!iso) return '';
+  const p = String(iso).split('-');
+  if(p.length !== 3) return '';
+  return p[2] + '/' + p[1] + '/' + p[0];
+}
+function dmyToISO(dmy){
+  if(!dmy) return '';
+  const m = String(dmy).trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if(!m) return '';
+  const day = Number(m[1]), month = Number(m[2]), year = Number(m[3]);
+  if(month < 1 || month > 12) return '';
+  const daysInMonth = new Date(year, month, 0).getDate();
+  if(day < 1 || day > daysInMonth) return '';
+  return m[3] + '-' + m[2] + '-' + m[1];
+}
+function isValidDMY(dmy){
+  return dmyToISO(dmy) !== '';
+}
+function attachDateMask(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('input', () => {
+    let digits = el.value.replace(/\D/g, '').slice(0, 8);
+    let formatted = digits;
+    if(digits.length > 4){
+      formatted = digits.slice(0,2) + '/' + digits.slice(2,4) + '/' + digits.slice(4);
+    } else if(digits.length > 2){
+      formatted = digits.slice(0,2) + '/' + digits.slice(2);
+    }
+    el.value = formatted;
+  });
+}
+['startDate','endDate','editStartDate','editEndDate'].forEach(attachDateMask);
+
+// أرشفة تلقائية: فقط "قادم" الذي انتهى تاريخه ينتقل لـ"قديم"
+function runAutoStatusTransition(){
+  const today = new Date().toISOString().slice(0,10);
+  cachedExhibits.forEach(ex => {
+    if(ex.status === 'upcoming' && ex.endDate && ex.endDate < today){
+      ex.status = 'old';
+      saveExhibitDoc(ex).catch(function(e){ console.error('تعذّر تحديث حالة المعرض تلقائيًا:', e); });
+    }
+  });
+  return cachedExhibits;
+}
+
+function goToPage(url){
+  window.location.href = url;
+}
+
+window.__DEFAULT_TAB__ = 'publish';
+
+</script>
 <script>
 
 
-  let cachedSubscriptions = [];
+/* ================================================================
+   تبويب: نشر معرض جديد
+   ================================================================ */
+const fileDrop = document.getElementById('fileDrop');
+const fileInput = document.getElementById('fileInput');
+const filePreview = document.getElementById('filePreview');
+const filePreviewThumb = document.getElementById('filePreviewThumb');
+const filePreviewName = document.getElementById('filePreviewName');
+const removeFile = document.getElementById('removeFile');
 
-  function fmtDate(d){
-    if(!d) return '—';
-    const p = d.split('-');
-    return p[2] + '/' + p[1] + '/' + p[0];
+let fileData = null;
+
+fileDrop.addEventListener('click', () => fileInput.click());
+fileDrop.addEventListener('dragover', (e) => { e.preventDefault(); fileDrop.style.borderColor = '#e0bd6f'; });
+fileDrop.addEventListener('dragleave', () => { fileDrop.style.borderColor = '#ddd0b3'; });
+fileDrop.addEventListener('drop', (e) => {
+  e.preventDefault();
+  fileDrop.style.borderColor = '#ddd0b3';
+  if(e.dataTransfer.files.length){
+    fileInput.files = e.dataTransfer.files;
+    handleFile(e.dataTransfer.files[0]);
   }
-  function fmtDateTime(iso){
-    if(!iso) return '—';
-    const d = new Date(iso);
-    return d.toLocaleDateString('ar-EG') + ' ' + d.toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'});
+});
+fileInput.addEventListener('change', () => { if(fileInput.files.length) handleFile(fileInput.files[0]); });
+removeFile.addEventListener('click', () => {
+  fileData = null;
+  fileInput.value = '';
+  filePreview.classList.remove('show');
+});
+
+function handleFile(file){
+  // ملاحظة: الحد أصبح 500 كيلوبايت بدل 3 ميجابايت لأن قاعدة بيانات Firebase
+  // لا تقبل مستندًا أكبر من 1 ميجابايت (والصورة تكبر ~33% بعد الترميز)
+  const maxSize = 500 * 1024;
+  const isImage = file.type.startsWith('image/');
+  const isPdf = file.type === 'application/pdf';
+  if(!isImage && !isPdf){ alert('الرجاء اختيار صورة أو ملف PDF فقط.'); fileInput.value = ''; return; }
+  if(file.size > maxSize){ alert('حجم الملف كبير جدًا. الحد الأقصى 500 كيلوبايت (0.5 ميجابايت).'); fileInput.value = ''; return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    fileData = { name: file.name, type: isImage ? 'image' : 'pdf', dataUrl: reader.result };
+    filePreviewThumb.innerHTML = isImage
+      ? '<img src="' + reader.result + '" alt="معاينة">'
+      : '<div class="pdf-icon">PDF</div>';
+    filePreviewName.textContent = file.name;
+    filePreview.classList.add('show');
+  };
+  reader.readAsDataURL(file);
+}
+
+let customFields = [];
+const customFieldsList = document.getElementById('customFieldsList');
+const newFieldInput = document.getElementById('newFieldInput');
+
+function renderCustomFields(){
+  customFieldsList.innerHTML = customFields.map(f => `
+    <div class="custom-field-chip">
+      <div class="cf-text"><strong>${escapeHtml(f.label)}</strong><span>حقل مخصص أضفته لهذا المعرض</span></div>
+      <span class="cf-added-badge">مطلوب</span>
+      <button type="button" class="remove-field-btn" onclick="removeCustomField(${f.id})" title="إزالة هذا الحقل">×</button>
+    </div>`).join('');
+}
+function removeCustomField(id){
+  customFields = customFields.filter(f => f.id !== id);
+  renderCustomFields();
+}
+document.getElementById('addFieldBtn').addEventListener('click', () => {
+  const label = newFieldInput.value.trim();
+  if(!label) return;
+  customFields.push({ id: Date.now(), label });
+  newFieldInput.value = '';
+  renderCustomFields();
+});
+
+const publishForm = document.getElementById('exhibitForm');
+const publishSuccessNotice = document.getElementById('successNotice');
+const publishErrorNotice = document.getElementById('errorNotice');
+
+publishForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  publishSuccessNotice.classList.remove('show');
+  publishErrorNotice.classList.remove('show');
+
+  const title = document.getElementById('title').value.trim();
+  const details = document.getElementById('details').value.trim();
+  const location = document.getElementById('location').value.trim();
+  const startDateRaw = document.getElementById('startDate').value.trim();
+  const endDateRaw = document.getElementById('endDate').value.trim();
+
+  if(!title || !details || !location || !startDateRaw || !endDateRaw){
+    publishErrorNotice.textContent = 'الرجاء تعبئة كل الحقول المطلوبة.';
+    publishErrorNotice.classList.add('show');
+    publishErrorNotice.scrollIntoView({behavior:'smooth', block:'center'});
+    return;
   }
-  function escapeHtml(str){
-    const d = document.createElement('div');
-    d.textContent = str || '';
-    return d.innerHTML;
+
+  if(!isValidDMY(startDateRaw) || !isValidDMY(endDateRaw)){
+    publishErrorNotice.textContent = 'الرجاء إدخال تاريخ صحيح بصيغة يوم/شهر/سنة (مثال: 08/09/2026).';
+    publishErrorNotice.classList.add('show');
+    publishErrorNotice.scrollIntoView({behavior:'smooth', block:'center'});
+    return;
   }
+  const startDate = dmyToISO(startDateRaw);
+  const endDate = dmyToISO(endDateRaw);
 
-  function render(){
-    const list = cachedSubscriptions.slice().sort((a,b) => (b.submittedAt||'').localeCompare(a.submittedAt||''));
-    document.getElementById('countPill').textContent = list.length + ' طلب';
-    const container = document.getElementById('requestsContainer');
+  const registrationConfig = {
+    standardFields: {
+      fullName: true, phone: true,
+      address: document.getElementById('reqAddress').checked,
+      company: document.getElementById('reqCompany').checked,
+      membership: document.getElementById('reqMembership').checked,
+      passportNumber: document.getElementById('reqPassportNumber').checked,
+      passportExpiry: document.getElementById('reqPassportExpiry').checked,
+      primarySector: document.getElementById('reqPrimarySector').checked,
+      email: document.getElementById('reqEmail').checked
+    },
+    customFields: customFields.slice()
+  };
 
-    if(list.length === 0){
-      container.innerHTML = `
-        <div class="empty-state">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg>
-          <h3>لا توجد طلبات اشتراك بعد</h3>
-        </div>`;
-      return;
-    }
+  const exhibit = {
+    id: Date.now(),
+    title,
+    description: details,
+    location, startDate, endDate,
+    image: fileData,
+    status: 'upcoming',
+    registrationConfig,
+    createdAt: new Date().toISOString()
+  };
 
-    const rows = list.map(s => `
-      <tr>
-        <td class="cell-exhibit">${escapeHtml(s.exhibitTitle)}</td>
-        <td class="cell-name">${escapeHtml(s.fullName)}</td>
-        <td>${escapeHtml(s.company)}</td>
-        <td>${escapeHtml(s.membership)}</td>
-        <td>${escapeHtml(s.address)}</td>
-        <td>${escapeHtml(s.passportNumber)}<br><span class="sector-detail">ينتهي: ${fmtDate(s.passportExpiry)}</span></td>
-        <td>
-          <span class="sector-tag">${escapeHtml(s.primarySectorLabel || '—')}</span>
-          <span class="sector-detail">${escapeHtml(s.sectorDetail || '')}</span>
-        </td>
-        <td>${(s.customFieldAnswers && s.customFieldAnswers.length)
-              ? s.customFieldAnswers.map(f => '<span class="sector-detail"><strong>' + escapeHtml(f.label) + ':</strong> ' + escapeHtml(f.value) + '</span>').join('<br>')
-              : '—'}</td>
-        <td>${escapeHtml(s.phone)}<br><span class="sector-detail">${escapeHtml(s.email)}</span></td>
-        <td><span class="sector-detail">${fmtDateTime(s.submittedAt)}</span></td>
-        <td><button class="del-btn" onclick="deleteSubscription(${s.id})">حذف</button></td>
-      </tr>`).join('');
+  saveExhibitDoc(exhibit).then(() => {
+    publishSuccessNotice.textContent = 'تم نشر المعرض بنجاح ✅ شوفيه بالأسفل بتبويب "تعديل المعارض".';
+    publishSuccessNotice.classList.add('show');
+    publishForm.reset();
+    fileData = null;
+    filePreview.classList.remove('show');
+    customFields = [];
+    renderCustomFields();
 
+    // الانتقال لتبويب "تعديل المعارض" فورًا
+    setTimeout(() => { switchTab('edit'); }, 700);
+  }).catch((err) => {
+    console.error('تعذّر نشر المعرض:', err);
+    publishErrorNotice.textContent = 'تعذّر حفظ المعرض. تأكدي من اتصال الإنترنت وحاولي مجددًا.';
+    publishErrorNotice.classList.add('show');
+  });
+});
+
+
+</script>
+<script>
+
+
+/* ================================================================
+   تبويب: تعديل المعارض
+   ================================================================ */
+let currentFilter = 'all';
+
+function render(){
+  const list = getExhibits().slice().sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
+  const container = document.getElementById('exhibitsContainer');
+  const filtered = currentFilter === 'all' ? list : list.filter(ex => ex.status === currentFilter);
+
+  if(filtered.length === 0){
     container.innerHTML = `
-      <div class="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>المعرض</th>
-              <th>الاسم الكامل</th>
-              <th>اسم الشركة</th>
-              <th>رقم العضوية</th>
-              <th>العنوان</th>
-              <th>رقم الباسبورت</th>
-              <th>القطاع</th>
-              <th>بيانات إضافية</th>
-              <th>التواصل</th>
-              <th>تاريخ التقديم</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 15l4-4 4 4 5-6"/></svg>
+        <h3>لا توجد معارض ${currentFilter !== 'all' ? 'في هذا القسم' : 'منشورة بعد'}</h3>
+        <p>استخدم تبويب "نشر معرض جديد" بالأعلى لإضافة أول معرض.</p>
       </div>`;
+    return;
   }
 
-  function deleteSubscription(id){
-    if(!confirm('هل أنت متأكد من حذف طلب الاشتراك هذا؟')) return;
-    db.collection('subscriptions').doc(String(id)).delete().catch((err) => {
-      console.error('تعذّر حذف الطلب:', err);
-      alert('تعذّر حذف الطلب. تأكدي من اتصال الإنترنت وحاولي مجددًا.');
-    });
+  container.innerHTML = '<div class="exhibits-grid">' + filtered.map(ex => {
+    const masterIndex = list.indexOf(ex);
+    const badge = '<span class="badge ' + STATUS_BADGE_CLASS[ex.status] + '">' + STATUS_LABEL[ex.status] + '</span>';
+    const thumb = ex.image
+      ? (ex.image.type === 'pdf'
+          ? '<span style="color:#c9463f;font-weight:800;font-size:11px;">PDF</span>'
+          : '<img src="' + ex.image.dataUrl + '" alt="صورة المعرض">')
+      : 'لا يوجد<br>ملف';
+
+    const moveOptions = Object.keys(STATUS_LABEL).map(key =>
+      '<option value="' + key + '"' + (key === ex.status ? ' selected' : '') + '>نقل إلى: ' + STATUS_LABEL[key] + '</option>'
+    ).join('');
+
+    return `
+      <div class="exhibit-card" data-id="${ex.id}">
+        <div class="ex-thumb">${thumb}</div>
+        <div class="ex-body">
+          <div class="ex-top">
+            <span class="ex-title">${escapeHtml(ex.title)}</span>
+            ${badge}
+          </div>
+          <div class="ex-meta">
+            <span>📅 ${fmtDate(ex.startDate)} — ${fmtDate(ex.endDate)}</span>
+            <span>📍 ${escapeHtml(ex.location || '—')}</span>
+          </div>
+          <div class="ex-desc">${escapeHtml(ex.description)}</div>
+        </div>
+        <div class="ex-actions">
+          <button class="ex-btn btn-edit" onclick="startEdit(${ex.id}, ${masterIndex})">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            تعديل
+          </button>
+          <select class="move-select" onchange="moveExhibit(${ex.id}, this.value, ${masterIndex})">${moveOptions}</select>
+          <button class="ex-btn btn-delete" onclick="deleteExhibit(${ex.id}, ${masterIndex})">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+            حذف
+          </button>
+        </div>
+      </div>`;
+  }).join('') + '</div>';
+}
+
+// دالة مساعدة: تجد العنصر بمطابقة المعرّف، وإذا فشلت تلجأ للموقع (index) كخطة احتياطية
+function findExhibitRobust(list, id, indexHint){
+  let ex = list.find(x => String(x.id) === String(id));
+  if(!ex && typeof indexHint === 'number' && list[indexHint]){
+    ex = list[indexHint];
   }
+  return ex;
+}
 
-  document.getElementById('excelBtn').addEventListener('click', () => {
-    const list = cachedSubscriptions.slice().sort((a,b) => (b.submittedAt||'').localeCompare(a.submittedAt||''));
+function moveExhibit(id, newStatus, indexHint){
+  const list = getExhibits().slice().sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
+  const ex = findExhibitRobust(list, id, indexHint);
+  if(!ex) return;
+  const updated = Object.assign({}, ex, { status: newStatus });
 
-    if(list.length === 0){
-      alert('لا توجد طلبات اشتراك لتصديرها.');
+  saveExhibitDoc(updated).then(() => {
+    const destination = DESTINATION_PAGE[newStatus];
+    if(destination){
+      goToPage(destination);
       return;
     }
-
-    const rows = list.map(s => ({
-      'المعرض': s.exhibitTitle || '',
-      'الاسم الكامل': s.fullName || '',
-      'اسم الشركة': s.company || '',
-      'رقم العضوية': s.membership || '',
-      'العنوان': s.address || '',
-      'رقم الباسبورت': s.passportNumber || '',
-      'تاريخ انتهاء الباسبورت': fmtDate(s.passportExpiry),
-      'القطاع الرئيسي': s.primarySectorLabel || '',
-      'تفاصيل القطاع': s.sectorDetail || '',
-      'بيانات إضافية': (s.customFieldAnswers && s.customFieldAnswers.length)
-        ? s.customFieldAnswers.map(f => f.label + ': ' + f.value).join(' | ')
-        : '',
-      'رقم الهاتف': s.phone || '',
-      'البريد الإلكتروني': s.email || '',
-      'تاريخ التقديم': fmtDateTime(s.submittedAt)
-    }));
-
-    const worksheet = XLSX.utils.json_to_sheet(rows);
-    worksheet['!cols'] = [
-      {wch:22}, {wch:20}, {wch:20}, {wch:14}, {wch:22}, {wch:16},
-      {wch:16}, {wch:14}, {wch:26}, {wch:26}, {wch:14}, {wch:24}, {wch:18}
-    ];
-
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'طلبات الاشتراك');
-
-    const today = new Date().toISOString().slice(0,10);
-    XLSX.writeFile(workbook, 'طلبات_الاشتراك_' + today + '.xlsx');
-  });
-
-  document.getElementById('printBtn').addEventListener('click', () => {
-    window.print();
-  });
-
-  db.collection('subscriptions').onSnapshot(function(snapshot){
-    cachedSubscriptions = snapshot.docs.map(d => d.data());
     render();
-  }, function(err){ console.error('Firestore subscriptions error:', err); });
+  }).catch((err) => {
+    console.error('تعذّر نقل المعرض:', err);
+    alert('تعذّر تحديث حالة المعرض. تأكدي من اتصال الإنترنت وحاولي مجددًا.');
+  });
+}
+
+function deleteExhibit(id, indexHint){
+  if(!confirm('هل أنت متأكد من حذف هذا المعرض؟ لا يمكن التراجع عن هذا الإجراء.')) return;
+  const list = getExhibits().slice().sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
+  const target = findExhibitRobust(list, id, indexHint);
+  if(!target){
+    alert('تعذّر تحديد المعرض المطلوب حذفه. حدّثي الصفحة وحاولي مجددًا.');
+    return;
+  }
+  deleteExhibitDoc(target.id).catch((err) => {
+    console.error('تعذّر حذف المعرض:', err);
+    alert('تعذّر حذف المعرض. تأكدي من اتصال الإنترنت وحاولي مجددًا.');
+  });
+}
+
+const editPanel = document.getElementById('editPanel');
+const editForm = document.getElementById('editForm');
+const editFileDrop = document.getElementById('editFileDrop');
+const editFileInput = document.getElementById('editFileInput');
+const editImgPreview = document.getElementById('editImgPreview');
+const editImgPreviewThumb = document.getElementById('editImgPreviewThumb');
+const editImgPreviewName = document.getElementById('editImgPreviewName');
+let editImageData = null;
+
+editFileDrop.addEventListener('click', () => editFileInput.click());
+editFileInput.addEventListener('change', () => {
+  const file = editFileInput.files[0];
+  if(!file) return;
+  const isImage = file.type.startsWith('image/');
+  const isPdf = file.type === 'application/pdf';
+  if(!isImage && !isPdf){ alert('الرجاء اختيار صورة أو ملف PDF فقط.'); return; }
+  if(file.size > 500*1024){ alert('حجم الملف كبير جدًا (الحد الأقصى 500 كيلوبايت).'); return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    editImageData = { name: file.name, type: isImage ? 'image' : 'pdf', dataUrl: reader.result };
+    editImgPreviewThumb.innerHTML = isImage
+      ? '<img src="' + reader.result + '" alt="معاينة">'
+      : '<div class="pdf-icon-sm">PDF</div>';
+    editImgPreviewName.textContent = file.name;
+    editImgPreview.classList.add('show');
+  };
+  reader.readAsDataURL(file);
+});
+
+function startEdit(id, indexHint){
+  const list = getExhibits().slice().sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
+  const ex = findExhibitRobust(list, id, indexHint);
+  if(!ex) return;
+
+  document.getElementById('editIndexHint').value = (typeof indexHint === 'number') ? indexHint : '';
+
+  editImageData = null;
+  editFileInput.value = '';
+
+  document.getElementById('editId').value = ex.id;
+  document.getElementById('editTitle').value = ex.title;
+  document.getElementById('editDescription').value = ex.description;
+  document.getElementById('editLocation').value = ex.location || '';
+  document.getElementById('editStartDate').value = isoToDMY(ex.startDate);
+  document.getElementById('editEndDate').value = isoToDMY(ex.endDate);
+  document.querySelector('input[name="editStatus"][value="' + ex.status + '"]').checked = true;
+
+  if(ex.image){
+    editImgPreviewThumb.innerHTML = ex.image.type === 'pdf'
+      ? '<div class="pdf-icon-sm">PDF</div>'
+      : '<img src="' + ex.image.dataUrl + '" alt="معاينة">';
+    editImgPreviewName.textContent = ex.image.name + ' (الملف الحالي)';
+    editImgPreview.classList.add('show');
+  } else {
+    editImgPreview.classList.remove('show');
+  }
+
+  editPanel.classList.add('show');
+  editPanel.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+document.getElementById('cancelEdit').addEventListener('click', () => {
+  editPanel.classList.remove('show');
+  editForm.reset();
+  editImgPreview.classList.remove('show');
+});
+
+editForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const id = document.getElementById('editId').value;
+  const indexHintRaw = document.getElementById('editIndexHint').value;
+  const indexHint = indexHintRaw === '' ? undefined : Number(indexHintRaw);
+  const list = getExhibits().slice().sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
+  const ex = findExhibitRobust(list, id, indexHint);
+  if(!ex){
+    alert('تعذّر تحديد المعرض المطلوب تعديله. حدّثي الصفحة وحاولي مجددًا.');
+    return;
+  }
+
+  const editStartDateRaw = document.getElementById('editStartDate').value.trim();
+  const editEndDateRaw = document.getElementById('editEndDate').value.trim();
+  if(!isValidDMY(editStartDateRaw) || !isValidDMY(editEndDateRaw)){
+    alert('الرجاء إدخال تاريخ صحيح بصيغة يوم/شهر/سنة (مثال: 08/09/2026).');
+    return;
+  }
+
+  const updated = Object.assign({}, ex);
+  updated.title = document.getElementById('editTitle').value.trim();
+  updated.description = document.getElementById('editDescription').value.trim();
+  updated.location = document.getElementById('editLocation').value.trim();
+  updated.startDate = dmyToISO(editStartDateRaw);
+  updated.endDate = dmyToISO(editEndDateRaw);
+  const newStatus = document.querySelector('input[name="editStatus"]:checked').value;
+  updated.status = newStatus;
+  if(editImageData) updated.image = editImageData;
+
+  saveExhibitDoc(updated).then(() => {
+    editPanel.classList.remove('show');
+    editForm.reset();
+    editImgPreview.classList.remove('show');
+
+    const destination = (newStatus !== ex.status) ? DESTINATION_PAGE[newStatus] : null;
+    if(destination){ goToPage(destination); return; }
+    render();
+  }).catch((err) => {
+    console.error('تعذّر حفظ التعديلات:', err);
+    alert('تعذّر حفظ التعديلات. تأكدي من اتصال الإنترنت وحاولي مجددًا.');
+  });
+});
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    render();
+  });
+});
+
+
+</script>
+<script>
+
+  // ============ التحكم بالتبويبات ============
+  function switchTab(name){
+    document.getElementById('panelPublish').classList.toggle('active', name === 'publish');
+    document.getElementById('panelEdit').classList.toggle('active', name === 'edit');
+    document.getElementById('tabBtnPublish').classList.toggle('active', name === 'publish');
+    document.getElementById('tabBtnEdit').classList.toggle('active', name === 'edit');
+    if(name === 'edit'){ render(); }
+  }
+
+  // الاتصال اللحظي بقاعدة بيانات المعارض. أول دفعة بيانات تصل تحدّد التبويب
+  // الافتراضي (أو تفتح معرض معين لو في ?edit=ID بالرابط)، وأي تحديث بعدها
+  // (من أي جهاز) بيحدّث القائمة تلقائيًا لو تبويب "تعديل المعارض" مفعّل.
+  let __hebronInitialLoadDone = false;
+  db.collection('exhibits').onSnapshot(function(snapshot){
+    cachedExhibits = snapshot.docs.map(d => d.data());
+    runAutoStatusTransition();
+
+    if(!__hebronInitialLoadDone){
+      __hebronInitialLoadDone = true;
+      const urlParams = new URLSearchParams(window.location.search);
+      const editIdParam = urlParams.get('edit');
+      if(editIdParam){
+        switchTab('edit');
+        startEdit(Number(editIdParam));
+      } else {
+        switchTab(window.__DEFAULT_TAB__);
+      }
+    } else if(document.getElementById('panelEdit').classList.contains('active')){
+      render();
+    }
+  }, function(err){ console.error('Firestore exhibits error:', err); });
 
 </script>
 
