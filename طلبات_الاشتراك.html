@@ -118,6 +118,9 @@
     background:#eaf3e4; color:#3a5c2a; margin-bottom:4px; white-space:nowrap;
   }
   .sector-detail{ font-size:11px; color:#8a7c63; display:block; max-width:180px; }
+  .cf-answer-img{ display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+  .cf-answer-img img{ width:32px; height:32px; object-fit:cover; border-radius:6px; border:1px solid #eee2c8; cursor:pointer; }
+  .cf-answer-img span{ font-size:11px; color:#8a7c63; }
   .del-btn{
     border:none; background:#fbeaea; color:#a13333; font-size:11.5px; font-weight:700;
     padding:6px 12px; border-radius:999px; cursor:pointer; white-space:nowrap;
@@ -247,7 +250,9 @@
           <span class="sector-detail">${escapeHtml(s.sectorDetail || '')}</span>
         </td>
         <td>${(s.customFieldAnswers && s.customFieldAnswers.length)
-              ? s.customFieldAnswers.map(f => '<span class="sector-detail"><strong>' + escapeHtml(f.label) + ':</strong> ' + escapeHtml(f.value) + '</span>').join('<br>')
+              ? s.customFieldAnswers.map(f => f.type === 'image' && f.dataUrl
+                  ? '<div class="cf-answer-img"><img src="' + f.dataUrl + '" alt="' + escapeHtml(f.label) + '" onclick="window.open(this.src, \'_blank\')" title="اضغط للتكبير"><span><strong>' + escapeHtml(f.label) + '</strong></span></div>'
+                  : '<span class="sector-detail"><strong>' + escapeHtml(f.label) + ':</strong> ' + escapeHtml(f.value) + '</span>').join('')
               : '—'}</td>
         <td>${escapeHtml(s.phone)}<br><span class="sector-detail">${escapeHtml(s.email)}</span></td>
         <td><span class="sector-detail">${fmtDateTime(s.submittedAt)}</span></td>
@@ -304,7 +309,7 @@
       'القطاع الرئيسي': s.primarySectorLabel || '',
       'تفاصيل القطاع': s.sectorDetail || '',
       'بيانات إضافية': (s.customFieldAnswers && s.customFieldAnswers.length)
-        ? s.customFieldAnswers.map(f => f.label + ': ' + f.value).join(' | ')
+        ? s.customFieldAnswers.map(f => f.type === 'image' ? (f.label + ': [صورة مرفقة - ' + f.value + ']') : (f.label + ': ' + f.value)).join(' | ')
         : '',
       'رقم الهاتف': s.phone || '',
       'البريد الإلكتروني': s.email || '',

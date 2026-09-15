@@ -117,6 +117,7 @@
   .lock-badge{ margin-right:auto; font-size:10px; color:#a99a78; background:#eee2c8; padding:2px 8px; border-radius:999px; white-space:nowrap; }
   .add-field-row{ display:flex; gap:10px; }
   .add-field-row input{ flex:1; }
+  .add-field-row select{ width:auto; flex:0 0 148px; padding:11px 10px; cursor:pointer; }
   .add-field-btn{ padding:0 20px; border-radius:12px; border:none; cursor:pointer; white-space:nowrap; background:var(--olive); color:#fff; font-family:'Tajawal',sans-serif; font-weight:800; font-size:13px; }
   .add-field-btn:hover{ background:var(--olive-light); }
   /* حاوية شفافة عشان عناصر الحقول المخصصة تنعرض كجزء طبيعي من نفس عمود القائمة (checklist) */
@@ -128,6 +129,7 @@
   .custom-field-chip .cf-text{ flex:1; }
   .custom-field-chip .cf-text strong{ font-size:13px; display:block; }
   .custom-field-chip .cf-text span{ font-size:11.5px; color:#8a7c63; }
+  .custom-field-chip .cf-type-badge{ font-size:10px; color:#3f5230; background:#e6edda; padding:2px 8px; border-radius:999px; white-space:nowrap; }
   .custom-field-chip .cf-added-badge{ font-size:10px; color:#7a5a15; background:#f3e4bf; padding:2px 8px; border-radius:999px; white-space:nowrap; }
   .custom-field-chip .remove-field-btn{ background:none; border:none; color:#a13333; font-weight:800; cursor:pointer; font-size:18px; line-height:1; padding:0 4px; }
 
@@ -308,7 +310,7 @@
             <div class="checklist">
               <label class="check-item locked">
                 <input type="checkbox" checked disabled>
-                <div class="ci-text"><strong>الاسم كامل كما حسب جواز السفر</strong></div>
+                <div class="ci-text"><strong>الاسم كامل حسب جواز السفر</strong></div>
                 <span class="lock-badge">إلزامي</span>
               </label>
               <label class="check-item locked">
@@ -321,16 +323,21 @@
               <label class="check-item"><input type="checkbox" id="reqMembership" checked><div class="ci-text"><strong>رقم العضوية</strong></div></label>
               <label class="check-item"><input type="checkbox" id="reqPassportNumber" checked><div class="ci-text"><strong>رقم جواز السفر</strong></div></label>
               <label class="check-item"><input type="checkbox" id="reqPassportExpiry" checked><div class="ci-text"><strong>تاريخ انتهاء جواز السفر</strong></div></label>
-              <label class="check-item"><input type="checkbox" id="reqPrimarySector" checked><div class="ci-text"><strong>القطاع الرئيسي</strong></div></label>
+              <label class="check-item"><input type="checkbox" id="reqPrimarySector" checked><div class="ci-text"><strong>Primary Sector</strong></div></label>
               <label class="check-item"><input type="checkbox" id="reqEmail" checked><div class="ci-text"><strong>البريد الإلكتروني</strong></div></label>
               <div id="customFieldsList" class="custom-fields-inline"></div>
             </div>
             <div class="field" style="margin-top:18px;">
               <label>إضافة حقل جديد مطلوب من المشترك (اختياري)</label>
               <div class="add-field-row">
-                <input type="text" id="newFieldInput" placeholder="مثال: اسم الشخص المرافق">
+                <input type="text" id="newFieldInput" placeholder="مثال: صورة جواز السفر">
+                <select id="newFieldType">
+                  <option value="text">حقل نصي</option>
+                  <option value="image">إرفاق صورة</option>
+                </select>
                 <button type="button" class="add-field-btn" id="addFieldBtn">+ إضافة</button>
               </div>
+              <p class="hint">اختاري "إرفاق صورة" إذا بدك المشترك يرفق صورة (متل صورة جواز السفر) بدل ما يكتب نص.</p>
             </div>
           </fieldset>
 
@@ -673,7 +680,8 @@ const newFieldInput = document.getElementById('newFieldInput');
 function renderCustomFields(){
   customFieldsList.innerHTML = customFields.map(f => `
     <div class="custom-field-chip">
-      <div class="cf-text"><strong>${escapeHtml(f.label)}</strong><span>حقل مخصص أضفته لهذا المعرض</span></div>
+      <div class="cf-text"><strong>${escapeHtml(f.label)}</strong><span>${f.type === 'image' ? 'حقل مخصص — يطلب من المشترك إرفاق صورة' : 'حقل مخصص أضفته لهذا المعرض'}</span></div>
+      <span class="cf-type-badge">${f.type === 'image' ? '📎 صورة' : 'نص'}</span>
       <span class="cf-added-badge">مطلوب</span>
       <button type="button" class="remove-field-btn" onclick="removeCustomField(${f.id})" title="إزالة هذا الحقل">×</button>
     </div>`).join('');
@@ -685,8 +693,11 @@ function removeCustomField(id){
 document.getElementById('addFieldBtn').addEventListener('click', () => {
   const label = newFieldInput.value.trim();
   if(!label) return;
-  customFields.push({ id: Date.now(), label });
+  const newFieldTypeSelect = document.getElementById('newFieldType');
+  const type = newFieldTypeSelect.value === 'image' ? 'image' : 'text';
+  customFields.push({ id: Date.now(), label, type });
   newFieldInput.value = '';
+  newFieldTypeSelect.value = 'text';
   renderCustomFields();
 });
 
