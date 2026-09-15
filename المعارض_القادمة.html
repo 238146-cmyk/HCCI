@@ -686,7 +686,7 @@ function runAutoStatusTransition(){
             <div class="sub-file-drop custom-sub-image-drop" data-field-id="${f.id}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               <p>اضغط هنا لاختيار صورة</p>
-              <span>الحد الأقصى: 500 كيلوبايت</span>
+              <span>تُضغط الصورة تلقائيًا مهما كان حجمها الأصلي</span>
             </div>
             <input type="file" class="custom-sub-image-input" data-field-id="${f.id}" accept="image/*" style="display:none">
             <div class="sub-file-preview" id="subCfPreview_${f.id}">
@@ -726,28 +726,72 @@ function runAutoStatusTransition(){
     subOverlay.classList.add('show');
   }
 
+  // ضغط الصورة تلقائيًا لتضل ضمن الحد المسموح من Firebase (تقريبًا 1 ميجابايت للمستند كامل)
+  // مع المحافظة على أعلى وضوح ممكن:
+  // 1) أول شي منجرب بجودة عالية جدًا (92%) وأبعاد كبيرة (حتى 1920px) — تضل واضحة تمامًا لعين القارئ.
+  // 2) إذا ضلت الصورة كبيرة، منقلل الجودة تدريجيًا وبخطوات صغيرة (مش قفزة كبيرة توضح الفرق).
+  // 3) بس إذا الجودة نزلت لحد يبين فيه تكسّر بالتفاصيل (تحت 55%)، منفضّل نصغّر الأبعاد شوي
+  //    بدل ما نكمل تنزيل بالجودة — لأنو تصغير الأبعاد بيحافظ على وضوح النص والتفاصيل أكتر من جودة JPEG واطية جدًا.
+  const IMAGE_DATA_URL_LIMIT = 850 * 1024; // ~830 كيلوبايت كنص base64 (الحد الفعلي المخزّن بقاعدة البيانات)
+  function compressImageToLimit(file, maxDataUrlBytes, callback){
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let quality = 0.92;
+        let maxDim = 1920;
+        const attempt = () => {
+          const ratio = Math.min(1, maxDim / Math.max(img.width, img.height));
+          const w = Math.max(1, Math.round(img.width * ratio));
+          const h = Math.max(1, Math.round(img.height * ratio));
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, w, h);
+          ctx.drawImage(img, 0, 0, w, h);
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          if(dataUrl.length <= maxDataUrlBytes){
+            callback(dataUrl);
+          } else if(quality > 0.55){
+            quality -= 0.08;
+            attempt();
+          } else if(maxDim > 900){
+            maxDim -= 250;
+            quality = 0.8;
+            attempt();
+          } else {
+            callback(dataUrl); // أفضل نتيجة ممكنة حتى لو تجاوزت الحد بشكل طفيف جدًا
+          }
+        };
+        attempt();
+      };
+      img.onerror = () => callback(null);
+      img.src = e.target.result;
+    };
+    reader.onerror = () => callback(null);
+    reader.readAsDataURL(file);
+  }
+
   function handleCustomFieldImage(fieldId, file){
-    // نفس حد الحجم المعتمد بباقي الموقع (500 كيلوبايت) عشان مستند الاشتراك ما يتجاوز حد Firestore
-    const maxSize = 500 * 1024;
     if(!file.type.startsWith('image/')){
       alert('الرجاء اختيار صورة فقط.');
       return;
     }
-    if(file.size > maxSize){
-      alert('حجم الصورة كبير جدًا. الحد الأقصى 500 كيلوبايت (0.5 ميجابايت).');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      customFieldImageData[fieldId] = { name: file.name, dataUrl: reader.result };
+    // نضغط الصورة تلقائيًا (حتى لو كانت من كاميرا الموبايل وحجمها كبير) بدل رفضها، مع محافظة على الوضوح
+    compressImageToLimit(file, IMAGE_DATA_URL_LIMIT, (dataUrl) => {
+      if(!dataUrl){
+        alert('تعذّر معالجة هذه الصورة. جربي صورة تانية.');
+        return;
+      }
+      customFieldImageData[fieldId] = { name: file.name, dataUrl };
       const previewImg = document.getElementById('subCfPreviewImg_' + fieldId);
       const previewName = document.getElementById('subCfPreviewName_' + fieldId);
       const preview = document.getElementById('subCfPreview_' + fieldId);
-      if(previewImg) previewImg.src = reader.result;
+      if(previewImg) previewImg.src = dataUrl;
       if(previewName) previewName.textContent = file.name;
       if(preview) preview.classList.add('show');
-    };
-    reader.readAsDataURL(file);
+    });
   }
 
   function closeSubscribeModal(){
