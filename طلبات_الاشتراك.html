@@ -121,6 +121,15 @@
   .cf-answer-img{ display:flex; align-items:center; gap:6px; margin-bottom:4px; }
   .cf-answer-img img{ width:32px; height:32px; object-fit:cover; border-radius:6px; border:1px solid #eee2c8; cursor:pointer; }
   .cf-answer-img span{ font-size:11px; color:#8a7c63; }
+
+  /* نافذة تكبير الصورة (بدل فتحها بتبويب جديد، لأن المتصفحات الحديثة بتمنع فتح روابط data: بتبويب جديد) */
+  .img-lightbox{ display:none; position:fixed; inset:0; z-index:999; background:rgba(20,14,8,0.85); align-items:center; justify-content:center; padding:20px; cursor:zoom-out; }
+  .img-lightbox.show{ display:flex; }
+  .img-lightbox-inner{ max-width:92vw; max-height:88vh; text-align:center; cursor:default; }
+  .img-lightbox-inner img{ max-width:92vw; max-height:80vh; border-radius:10px; box-shadow:0 20px 60px rgba(0,0,0,0.5); }
+  .img-lightbox-label{ color:#f4ecdb; font-size:13px; margin-top:10px; }
+  .img-lightbox-close{ position:fixed; top:18px; left:18px; width:38px; height:38px; border-radius:50%; border:none; background:rgba(255,255,255,0.15); color:#fff; font-size:20px; cursor:pointer; }
+  .img-lightbox-close:hover{ background:rgba(255,255,255,0.28); }
   .del-btn{
     border:none; background:#fbeaea; color:#a13333; font-size:11.5px; font-weight:700;
     padding:6px 12px; border-radius:999px; cursor:pointer; white-space:nowrap;
@@ -202,10 +211,31 @@
     <br>Developer: Tagreed Zaid
   </footer>
 
+  <!-- نافذة تكبير الصورة -->
+  <div class="img-lightbox" id="imgLightbox" onclick="closeImageLightbox()">
+    <button type="button" class="img-lightbox-close" onclick="closeImageLightbox()">×</button>
+    <div class="img-lightbox-inner" onclick="event.stopPropagation()">
+      <img id="imgLightboxImg" src="" alt="">
+      <div class="img-lightbox-label" id="imgLightboxLabel"></div>
+    </div>
+  </div>
+
 <script>
 
 
   let cachedSubscriptions = [];
+
+  // نفتح الصورة بنافذة منبثقة داخل الصفحة نفسها بدل تبويب جديد،
+  // لأن المتصفحات الحديثة (كروم وغيره) بتمنع فتح روابط data: بتبويب جديد لأسباب أمنية —
+  // وهاد كان سبب إنو الصورة ما كانت تظهر عند الضغط عليها.
+  function openImageLightbox(src, label){
+    document.getElementById('imgLightboxImg').src = src;
+    document.getElementById('imgLightboxLabel').textContent = label || '';
+    document.getElementById('imgLightbox').classList.add('show');
+  }
+  function closeImageLightbox(){
+    document.getElementById('imgLightbox').classList.remove('show');
+  }
 
   function fmtDate(d){
     if(!d) return '—';
@@ -251,7 +281,7 @@
         </td>
         <td>${(s.customFieldAnswers && s.customFieldAnswers.length)
               ? s.customFieldAnswers.map(f => f.type === 'image' && f.dataUrl
-                  ? '<div class="cf-answer-img"><img src="' + f.dataUrl + '" alt="' + escapeHtml(f.label) + '" onclick="window.open(this.src, \'_blank\')" title="اضغط للتكبير"><span><strong>' + escapeHtml(f.label) + '</strong></span></div>'
+                  ? '<div class="cf-answer-img"><img src="' + f.dataUrl + '" alt="' + escapeHtml(f.label) + '" onclick="openImageLightbox(this.src, this.alt)" title="اضغط للتكبير"><span><strong>' + escapeHtml(f.label) + '</strong></span></div>'
                   : '<span class="sector-detail"><strong>' + escapeHtml(f.label) + ':</strong> ' + escapeHtml(f.value) + '</span>').join('')
               : '—'}</td>
         <td>${escapeHtml(s.phone)}<br><span class="sector-detail">${escapeHtml(s.email)}</span></td>
